@@ -6,7 +6,7 @@ import { AddSongsPage, MyPlaylistPage } from "./pages/Playlists";
 import { SheetProvider } from "./sheets";
 import { ChartPage, ChartsIndex } from "./pages/Charts";
 import Home from "./pages/Home";
-import { AlbumPage, ArtistPage, Library, PlaylistPage } from "./pages/Library";
+import { AlbumPage, AllAlbumsPage, AllArtistsPage, ArtistPage, Library, PlaylistPage } from "./pages/Library";
 import Login from "./pages/Login";
 import Search from "./pages/Search";
 import { PlayerProvider } from "./player";
@@ -67,6 +67,8 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           <Route path="/playlist/:id" element={<PlaylistPage />} />
           <Route path="/album/:id" element={<AlbumPage />} />
           <Route path="/artist/:id" element={<ArtistPage />} />
+          <Route path="/albums/all" element={<AllAlbumsPage />} />
+          <Route path="/artists/all" element={<AllArtistsPage />} />
           <Route path="/my/:id" element={<MyPlaylistPage />} />
           <Route path="/my/:id/add" element={<AddSongsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

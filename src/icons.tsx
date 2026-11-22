@@ -121,6 +121,11 @@ export const IconLyrics = (p: P) => (
     <path d="M9 8.5h.01M9 11.5h0M9.5 8c-.8 0-1.2.6-1.2 1.3s.5 1.2 1.1 1.2c-.1.9-.6 1.4-1.2 1.6M14 8c-.8 0-1.2.6-1.2 1.3s.5 1.2 1.1 1.2c-.1.9-.6 1.4-1.2 1.6" />
   </Svg>
 );
+export const IconSort = (p: P) => (
+  <Svg {...p}>
+    <path d="M7 4v16M3.5 16.5 7 20l3.5-3.5M17 20V4M13.5 7.5 17 4l3.5 3.5" />
+  </Svg>
+);
 export const IconPlus = (p: P) => (
   <Svg {...p}>
     <path d="M12 5v14M5 12h14" />

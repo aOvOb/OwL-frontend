@@ -285,6 +285,10 @@ a.pill { text-decoration: none; }
 .list > .row { content-visibility: auto; contain-intrinsic-size: auto 62px; }
 .grid > .card { content-visibility: auto; contain-intrinsic-size: auto 220px; }
 .windowed-sentinel { height: 1px; }
+.list-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 20px 12px; flex-wrap: wrap; }
+.sort-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; color: var(--muted); padding: 6px 10px; border-radius: 999px; background: var(--bg-elev2); }
+.artist-actions { padding: 0 20px 18px; }
+.top-gap { margin-top: 10px; }
 .version { text-align: center; color: #5b6670; font-size: 12px; margin: 28px 0 8px; }
 
 /* ---------- download queue (DLQ) ---------- */

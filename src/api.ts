@@ -88,6 +88,10 @@ export type DownloadQueue = {
   failed: QueuedSong[];
 };
 
+/** Albums and artists this account saved to its library. */
+export type SavedItem = { id: string; name: string; artist?: string | null; coverArt?: string | null; year?: number | null; addedAt: number };
+export type SavedLibrary = { albums: SavedItem[]; artists: SavedItem[] };
+
 /** Per-account settings. */
 export type Prefs = { chartOrder: string[] };
 
@@ -116,7 +120,7 @@ export type ItemInput = {
 };
 
 export type PlaylistSummary = { id: string; name: string; count: number; cover: boolean; updatedAt: number; thumbnails: string[] };
-export type PlaylistItemView = ItemInput & { index: number; downloading: boolean };
+export type PlaylistItemView = ItemInput & { index: number; downloading: boolean; addedAt: number };
 export type MyPlaylist = { id: string; name: string; cover: boolean; updatedAt: number; items: PlaylistItemView[] };
 
 export type Job = {
@@ -199,6 +203,19 @@ export const api = {
     request<{ count: number }>("/downloads/retry", { method: "POST", body: JSON.stringify({ videoIds: videoIds ?? null }) }),
   dropDownloads: (videoIds: string[]) =>
     request<{ count: number }>("/downloads/drop", { method: "POST", body: JSON.stringify({ videoIds }) }),
+  myLibrary: () => request<SavedLibrary>("/my/library"),
+  saveAlbum: (a: Album) =>
+    request<SavedLibrary>(`/my/library/albums/${enc(a.id)}`, {
+      method: "PUT",
+      body: JSON.stringify({ name: a.name ?? "", artist: a.artist ?? null, coverArt: a.coverArt ?? a.id, year: a.year ?? null }),
+    }),
+  unsaveAlbum: (id: string) => request<SavedLibrary>(`/my/library/albums/${enc(id)}`, { method: "DELETE" }),
+  saveArtist: (a: Artist) =>
+    request<SavedLibrary>(`/my/library/artists/${enc(a.id)}`, {
+      method: "PUT",
+      body: JSON.stringify({ name: a.name ?? "", coverArt: a.coverArt ?? a.id }),
+    }),
+  unsaveArtist: (id: string) => request<SavedLibrary>(`/my/library/artists/${enc(id)}`, { method: "DELETE" }),
   prefs: () => request<Prefs>("/my/prefs"),
   savePrefs: (p: Prefs) => request<Prefs>("/my/prefs", { method: "PUT", body: JSON.stringify(p) }),
 

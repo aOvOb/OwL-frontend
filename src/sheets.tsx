@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { api, playlistCoverUrl, type ItemInput, type PlaylistSummary } from "./api";
 
 export type Action = { label: string; icon?: React.ReactNode; danger?: boolean; run: () => void | Promise<void> };
@@ -27,12 +27,22 @@ type State =
   | { kind: "prompt"; title: string; value: string; onOk: (v: string) => void | Promise<void> };
 
 export function SheetProvider({ children, toast }: { children: React.ReactNode; toast: (m: string) => void }) {
-  const [state, setState] = useState<State>({ kind: "none" });
+  const [state, setRaw] = useState<State>({ kind: "none" });
   const [closing, setClosing] = useState(false);
+  // Each open bumps the generation, so a closing animation never closes a sheet opened after it
+  // (e.g. "⋯" menu -> "재생목록에 추가" opens the picker while the menu is still sliding away).
+  const gen = useRef(0);
+  const setState = useCallback((s: State) => {
+    gen.current++;
+    setClosing(false);
+    setRaw(s);
+  }, []);
   const close = useCallback(() => {
+    const g = gen.current;
     setClosing(true);
     setTimeout(() => {
-      setState({ kind: "none" });
+      if (gen.current !== g) return;
+      setRaw({ kind: "none" });
       setClosing(false);
     }, 220);
   }, []);

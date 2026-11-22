@@ -285,6 +285,7 @@ a.pill { text-decoration: none; }
 .list > .row { content-visibility: auto; contain-intrinsic-size: auto 62px; }
 .grid > .card { content-visibility: auto; contain-intrinsic-size: auto 220px; }
 .windowed-sentinel { height: 1px; }
+.version { text-align: center; color: #5b6670; font-size: 12px; margin: 28px 0 8px; }
 
 /* ---------- download queue (DLQ) ---------- */
 .dl-status { margin: 0 20px 10px; padding: 12px 14px; border-radius: 12px; background: var(--bg-elev2); font-size: 14px; line-height: 1.45; }

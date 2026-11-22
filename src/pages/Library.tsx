@@ -4,6 +4,7 @@ import { api, formatTime, songToItem } from "../api";
 import { Cover, ErrorBox, Loading, Page, PlayButtons, SongRow, useLoad } from "../components";
 import { IconChevron, IconPlus } from "../icons";
 import { useSheets } from "../sheets";
+import { BUILD_ID } from "../version";
 import { Windowed } from "../windowed";
 import { Downloads } from "./Downloads";
 import { MyPlaylistsList } from "./Playlists";
@@ -31,6 +32,7 @@ export function Library() {
       {tab === "albums" && <Albums />}
       {tab === "artists" && <Artists />}
       {tab === "downloads" && <Downloads />}
+      <p className="version">OwL 버전 {BUILD_ID}</p>
     </Page>
   );
 }

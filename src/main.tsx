@@ -3,6 +3,10 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import "./styles.css";
+import { ensureLatest } from "./version";
+
+ensureLatest();
+document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && ensureLatest());
 
 // Home-screen apps on iOS stay suspended instead of reloading, so look for a new version whenever the
 // app comes back to the screen and once an hour; autoUpdate then reloads into it.

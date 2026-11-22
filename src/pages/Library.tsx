@@ -33,10 +33,18 @@ export function Library() {
       {tab === "albums" && <Albums />}
       {tab === "artists" && <Artists />}
       {tab === "downloads" && <Downloads />}
-      <p className="version">
-        OwL {APP_VERSION} ({BUILD_ID})
-      </p>
+      <VersionLine />
     </Page>
+  );
+}
+
+/** "앱 0.8.0 (abc1234) · 서버 0.8.0 (def5678)" */
+function VersionLine() {
+  const server = useLoad(() => api.serverVersion(), []);
+  return (
+    <p className="version">
+      앱 {APP_VERSION} ({BUILD_ID}) · 서버 {server.data ? `${server.data.version} (${server.data.build})` : server.error ? "확인 실패" : "…"}
+    </p>
   );
 }
 

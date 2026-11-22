@@ -197,6 +197,8 @@ export const api = {
     }),
   jobs: () => request<{ jobs: Job[] }>("/yt/jobs"),
 
+  /** Backend version: semver and the deployed commit. */
+  serverVersion: () => request<{ version: string; build: string }>("/version"),
   lyrics: (songId: string) => request<Lyrics>(`/lyrics/${enc(songId)}`),
   downloads: () => request<DownloadQueue>("/downloads"),
   retryDownloads: (videoIds?: string[]) =>

@@ -289,26 +289,35 @@ const IOS_STEPS: Step[] = [
   {
     text: (
       <>
-        Safari 맨 아래 주소창 오른쪽의 <b>⋯</b>(점 세 개) 버튼을 누르세요.
+        Safari 맨 아래 주소창 왼쪽 끝의 <b>≡</b>(줄 세 개) 버튼을 누르세요. 화면 배치에 따라 <b>⋯</b>(점 세 개) 버튼일 수도 있어요.
       </>
     ),
     art: (
       <Phone h={140}>
         <PageLines y={24} />
-        <circle cx="38" cy="108" r="20" fill="#2c2c2e" />
-        <path d="M42 100l-8 8 8 8" fill="none" stroke="#f2f2f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="64" y="88" width={W - 128} height="40" rx="20" fill="#2c2c2e" />
-        <T x={W / 2} y={113} a="middle" c="#d1d1d6">
-          owl.aovob7.duckdns.org
-        </T>
-        <circle cx={W - 38} cy="108" r="20" fill="#2c2c2e" />
-        <g fill="#f2f2f7">
-          <circle cx={W - 46} cy="108" r="2.4" />
-          <circle cx={W - 38} cy="108" r="2.4" />
-          <circle cx={W - 30} cy="108" r="2.4" />
+        {/* back/forward pill */}
+        <rect x="12" y="88" width="66" height="40" rx="20" fill="#2c2c2e" />
+        <g fill="none" stroke="#f2f2f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M34 100l-7 8 7 8" opacity="0.4" />
+          <path d="M56 100l7 8-7 8" />
         </g>
-        <Ring x={W - 62} y={84} w={48} h={48} r={24} />
-        <Tap x={W - 30} y={122} />
+        {/* address pill: page menu, domain, reload */}
+        <rect x="86" y="88" width={W - 148} height="40" rx="20" fill="#2c2c2e" />
+        <g stroke="#f2f2f7" strokeWidth="2" strokeLinecap="round">
+          <path d="M101 101h14M101 108h14M101 115h10" />
+        </g>
+        <T x={124} y={113} c="#d1d1d6" s={12}>
+          aovob7.duckdns.org
+        </T>
+        <path d={`M${W - 76} 103a6 6 0 1 0 2 5`} fill="none" stroke="#f2f2f7" strokeWidth="1.8" strokeLinecap="round" />
+        {/* tabs button */}
+        <circle cx={W - 30} cy="108" r="20" fill="#2c2c2e" />
+        <g fill="none" stroke="#f2f2f7" strokeWidth="1.8">
+          <rect x={W - 36} y="102" width="12" height="12" rx="3" />
+          <path d={`M${W - 32} 99h7a3 3 0 0 1 3 3v7`} />
+        </g>
+        <Ring x={88} y={88} w={40} h={40} r={20} />
+        <Tap x={118} y={124} />
       </Phone>
     ),
   },

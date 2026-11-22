@@ -27,7 +27,6 @@ export default function Login({ onLogin }: { onLogin: (username: string) => void
       <form className="login-card" onSubmit={submit}>
         <img className="login-logo" src="/icons/icon-192.png" alt="" />
         <h1>OwL</h1>
-        <p className="login-sub">음악 서버 계정으로 로그인하세요</p>
         {error && <div className="login-error">{error}</div>}
         <label>
           아이디

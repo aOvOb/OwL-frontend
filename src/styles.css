@@ -39,24 +39,23 @@ img { display: block; }
 
 /* The bar always has a background: on iPhone the page scrolls under the status bar and Dynamic Island,
    so a transparent bar would let content show through there. */
+/* No transitions, no half-pixel border: on iPhone a sticky bar that is animated or sits on a half pixel
+   is drawn as a separate low-resolution layer, which made the title look blurry until the page moved. */
 .topbar {
   position: sticky; top: 0; z-index: 20;
   display: grid; grid-template-columns: 72px 1fr 72px; align-items: center;
   height: calc(48px + var(--safe-top)); padding: calc(var(--safe-top) + 4px) 8px 0;
   background: var(--bg);
-  transition: background .2s, border-color .2s;
-  border-bottom: 0.5px solid transparent;
 }
 .topbar.static { position: relative; }
 /* Always-on cover for the status bar / Dynamic Island area, above scrolling content. */
 .status-cover { position: fixed; top: 0; left: 0; right: 0; height: var(--safe-top); background: var(--bg); z-index: 25; pointer-events: none; }
 /* Solid, not a translucent blur: blur under the status bar / Dynamic Island looked hazy on iPhone. */
 .topbar.solid { background: var(--bg); }
-.topbar.solid.scrolled { border-bottom-color: var(--line); }
+.topbar.solid.scrolled { box-shadow: 0 1px 0 var(--line); }
 .topbar-side { display: flex; align-items: center; }
 .topbar-side.right { justify-content: flex-end; }
-.topbar-title { text-align: center; font-weight: 600; font-size: 17px; opacity: 0; transition: opacity .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.topbar-title.show { opacity: 1; }
+.topbar-title { text-align: center; font-weight: 600; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .large-title { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 4px 20px 14px; }
 
 .icon-btn { display: inline-grid; place-items: center; min-width: 44px; height: 44px; border-radius: 22px; color: var(--text); position: relative; }

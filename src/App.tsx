@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-route
 import { api } from "./api";
 import { Loading, MiniPlayer, NowPlaying, TabBar, Toaster, toast } from "./components";
 import { AddSongsPage, MyPlaylistPage } from "./pages/Playlists";
+import { InstallBanner } from "./install";
 import { SheetProvider } from "./sheets";
 import { ChartPage, ChartsIndex } from "./pages/Charts";
 import Home from "./pages/Home";
@@ -101,11 +102,18 @@ export default function App() {
   };
 
   if (user === undefined) return <Loading />;
-  if (user === null) return <Login onLogin={setUser} />;
+  if (user === null)
+    return (
+      <>
+        <InstallBanner />
+        <Login onLogin={setUser} />
+      </>
+    );
   return (
     <BrowserRouter>
       <PlayerProvider>
         <SheetProvider toast={toast}>
+          <InstallBanner />
           <Shell onLogout={logout} />
         </SheetProvider>
       </PlayerProvider>

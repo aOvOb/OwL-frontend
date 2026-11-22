@@ -224,13 +224,13 @@ export function ChartPage() {
     () => (chart?.entries ?? []).map(ytToSong).filter((s): s is Song => !!s),
     [chart],
   );
-  const missing = (chart?.entries ?? []).filter((e) => !e.songId && !e.downloading && e.videoId).map((e) => e.videoId!) ;
+  const missing = (chart?.entries ?? []).filter((e) => !e.songId && !e.downloading && e.videoId).map(ytToItem);
 
   const downloadAll = async () => {
     setBusy(true);
     try {
       const r = await api.downloadMany(missing);
-      toast(r.queued ? `${r.queued}곡 다운로드를 요청했어요` : "대기열이 가득 찼어요. 잠시 뒤에 다시 시도하세요");
+      toast(r.queued ? `${r.queued}곡을 다운로드 대기열에 넣었어요` : "이미 대기열에 있어요");
       reload();
     } catch (e) {
       toast((e as Error).message);

@@ -150,10 +150,18 @@ export const api = {
   charts: (key?: string, top?: number) =>
     request<Chart[]>(`/charts?${new URLSearchParams({ ...(key ? { key } : {}), ...(top ? { top: String(top) } : {}) })}`),
   ytSearch: (q: string) => request<YtSong[]>(`/yt/search?q=${enc(q)}`),
-  download: (videoId: string) => request<{ id: string }>("/yt/download", { method: "POST", body: JSON.stringify({ videoId }) }),
+  /** Queues one song on the server (title/artist let the queue recognize it once downloaded). */
+  download: (item: ItemInput) =>
+    request<{ queued: number }>("/yt/download", {
+      method: "POST",
+      body: JSON.stringify({ videoId: item.videoId, title: item.title, artist: item.artist, album: item.album, thumbnail: item.thumbnail }),
+    }),
   downloadUrl: (url: string) => request<{ id: string }>("/yt/download", { method: "POST", body: JSON.stringify({ url }) }),
-  downloadMany: (videoIds: string[]) =>
-    request<{ queued: number }>("/yt/download/bulk", { method: "POST", body: JSON.stringify({ videoIds }) }),
+  downloadMany: (items: ItemInput[]) =>
+    request<{ queued: number }>("/yt/download/bulk", {
+      method: "POST",
+      body: JSON.stringify({ items: items.map((i) => ({ videoId: i.videoId, title: i.title, artist: i.artist, album: i.album, thumbnail: i.thumbnail })) }),
+    }),
   jobs: () => request<{ jobs: Job[] }>("/yt/jobs"),
 
   lyrics: (songId: string) => request<Lyrics>(`/lyrics/${enc(songId)}`),

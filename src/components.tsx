@@ -252,8 +252,8 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
     if (!item.videoId) return;
     setRequested(true);
     try {
-      await api.download(item.videoId);
-      toast("다운로드를 요청했어요");
+      await api.download(ytToItem(item));
+      toast("다운로드 대기열에 넣었어요");
       onDownloaded?.(item.videoId);
     } catch (err) {
       setRequested(false);

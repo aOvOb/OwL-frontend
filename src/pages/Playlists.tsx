@@ -189,7 +189,7 @@ export function MyPlaylistPage() {
   }, [pending, reload]);
 
   const playable = useMemo(() => (data?.items ?? []).map(itemToSong).filter((s): s is Song => !!s), [data]);
-  const missing = (data?.items ?? []).filter((i) => !i.songId && !i.downloading && i.videoId).map((i) => i.videoId!);
+  const missing = (data?.items ?? []).filter((i) => !i.songId && !i.downloading && i.videoId);
 
   const changed = () => {
     reload();
@@ -247,7 +247,7 @@ export function MyPlaylistPage() {
 
   const downloadMissing = async () => {
     const r = await api.downloadMany(missing).catch((e) => (sheets.toast(e.message), null));
-    if (r) sheets.toast(r.queued ? `${r.queued}곡 다운로드를 요청했어요` : "대기열이 가득 찼어요");
+    if (r) sheets.toast(r.queued ? `${r.queued}곡을 다운로드 대기열에 넣었어요` : "이미 대기열에 있어요");
     reload();
   };
 

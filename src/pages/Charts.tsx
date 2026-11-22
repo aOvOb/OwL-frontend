@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
-import { api, ytToItem, ytToSong, type Song } from "../api";
+import { api, formatBasis, ytToItem, ytToSong, type Song } from "../api";
 import { ErrorBox, Loading, Page, PlayButtons, toast, useLoad, YtRow } from "../components";
 import { IconDownload, IconPlus } from "../icons";
 import { useSheets } from "../sheets";
@@ -30,6 +30,7 @@ export function ChartsIndex() {
                 <div>
                   <div className="chart-tile-brand">{s.brand}</div>
                   <div className="chart-banner-name">{s.label}</div>
+                  <div className="chart-basis">{formatBasis(c.basis)}</div>
                   <div className="chart-tile-count">
                     {have}/{c.entries.length}곡 보관 중
                   </div>
@@ -84,17 +85,18 @@ export function ChartPage() {
     }
   };
 
-  const updated = chart?.updated ? new Date(chart.updated * 1000).toLocaleString("ko-KR", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }) : null;
-
   return (
     <Page title={style ? `${style.brand} ${style.label}` : "차트"} back large={false}>
       <div className="chart-hero" style={{ background: style?.bg }}>
         <div className="chart-tile-brand">{style?.brand}</div>
         <div className="chart-hero-name">{style?.label}</div>
         {chart && (
-          <div className="chart-tile-count">
-            {playable.length}/{chart.entries.length}곡 보관 중{updated ? ` · ${updated} 기준` : ""}
-          </div>
+          <>
+            <div className="chart-basis">{formatBasis(chart.basis)}</div>
+            <div className="chart-tile-count">
+              {playable.length}/{chart.entries.length}곡 보관 중
+            </div>
+          </>
         )}
       </div>
       {error && <ErrorBox message={error} onRetry={reload} />}

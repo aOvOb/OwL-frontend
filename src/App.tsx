@@ -1,7 +1,9 @@
 import { Component, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router";
 import { api } from "./api";
-import { Loading, MiniPlayer, NowPlaying, TabBar, Toaster } from "./components";
+import { Loading, MiniPlayer, NowPlaying, TabBar, Toaster, toast } from "./components";
+import { MyPlaylistPage } from "./pages/Playlists";
+import { SheetProvider } from "./sheets";
 import { ChartPage, ChartsIndex } from "./pages/Charts";
 import Home from "./pages/Home";
 import { AlbumPage, ArtistPage, Library, PlaylistPage } from "./pages/Library";
@@ -64,6 +66,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           <Route path="/playlist/:id" element={<PlaylistPage />} />
           <Route path="/album/:id" element={<AlbumPage />} />
           <Route path="/artist/:id" element={<ArtistPage />} />
+          <Route path="/my/:id" element={<MyPlaylistPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Routed>
@@ -98,7 +101,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <PlayerProvider>
-        <Shell onLogout={logout} />
+        <SheetProvider toast={toast}>
+          <Shell onLogout={logout} />
+        </SheetProvider>
       </PlayerProvider>
     </BrowserRouter>
   );

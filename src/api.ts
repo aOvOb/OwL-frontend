@@ -53,9 +53,26 @@ export type YtSong = {
   songId?: string | null;
   downloading?: boolean;
   rank?: number;
+  ytTitle?: string | null;
+  ytArtist?: string | null;
 };
 
 export type Chart = { key: string; name: string; updated?: number | null; entries: YtSong[] };
+
+/** What gets stored in an OwL playlist. title/artist are YouTube Music's names (= the file's tags). */
+export type ItemInput = {
+  videoId?: string | null;
+  songId?: string | null;
+  title: string;
+  artist: string;
+  album?: string | null;
+  duration?: number | null;
+  thumbnail?: string | null;
+};
+
+export type PlaylistSummary = { id: string; name: string; count: number; cover: boolean; updatedAt: number; thumbnails: string[] };
+export type PlaylistItemView = ItemInput & { index: number; downloading: boolean };
+export type MyPlaylist = { id: string; name: string; cover: boolean; updatedAt: number; items: PlaylistItemView[] };
 
 export type Job = {
   id: string;
@@ -119,7 +136,70 @@ export const api = {
   downloadMany: (videoIds: string[]) =>
     request<{ queued: number }>("/yt/download/bulk", { method: "POST", body: JSON.stringify({ videoIds }) }),
   jobs: () => request<{ jobs: Job[] }>("/yt/jobs"),
+
+  myPlaylists: () => request<PlaylistSummary[]>("/my/playlists"),
+  myPlaylist: (id: string) => request<MyPlaylist>(`/my/playlists/${enc(id)}`),
+  createPlaylist: (name: string, items: ItemInput[] = []) =>
+    request<MyPlaylist>("/my/playlists", { method: "POST", body: JSON.stringify({ name, items }) }),
+  renamePlaylist: (id: string, name: string) =>
+    request<MyPlaylist>(`/my/playlists/${enc(id)}`, { method: "PATCH", body: JSON.stringify({ name }) }),
+  deletePlaylist: (id: string) => request<void>(`/my/playlists/${enc(id)}`, { method: "DELETE" }),
+  addToPlaylist: (id: string, items: ItemInput[]) =>
+    request<MyPlaylist>(`/my/playlists/${enc(id)}/items`, { method: "POST", body: JSON.stringify({ items }) }),
+  removeFromPlaylist: (id: string, index: number) =>
+    request<MyPlaylist>(`/my/playlists/${enc(id)}/items/${index}`, { method: "DELETE" }),
+  setPlaylistCover: (id: string, jpeg: Blob) =>
+    request<MyPlaylist>(`/my/playlists/${enc(id)}/cover`, { method: "PUT", body: jpeg, headers: { "Content-Type": "image/jpeg" } }),
+  removePlaylistCover: (id: string) => request<MyPlaylist>(`/my/playlists/${enc(id)}/cover`, { method: "DELETE" }),
 };
+
+export const playlistCoverUrl = (p: { id: string; cover: boolean; updatedAt: number }) =>
+  p.cover ? `/api/my/playlists/${enc(p.id)}/cover?v=${p.updatedAt}` : undefined;
+
+/** Chart or search entry -> playlist item (uses YouTube Music's own names when the chart had its own). */
+export const ytToItem = (s: YtSong & { ytTitle?: string | null; ytArtist?: string | null }): ItemInput => ({
+  videoId: s.videoId,
+  songId: s.songId ?? null,
+  title: s.ytTitle || s.title,
+  artist: s.ytArtist || s.artist,
+  album: s.album ?? null,
+  duration: s.duration ?? null,
+  thumbnail: s.thumbnail ?? null,
+});
+
+export const songToItem = (s: Song): ItemInput => ({
+  songId: s.id,
+  title: s.title ?? "",
+  artist: s.artist ?? "",
+  album: s.album ?? null,
+  duration: s.duration ?? null,
+});
+
+export const itemToSong = (i: PlaylistItemView): Song | null =>
+  i.songId ? { id: i.songId, title: i.title, artist: i.artist, album: i.album ?? undefined, coverArt: i.songId, duration: i.duration ?? undefined } : null;
+
+/**
+ * Shrinks a picked photo in the browser before upload: centered square, at most 1000px,
+ * JPEG re-compressed until it is under ~1MB. The server checks and re-encodes it again.
+ */
+export async function prepareCover(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file).catch(() => {
+    throw new ApiError(400, "사진을 읽을 수 없어요");
+  });
+  const side = Math.min(bitmap.width, bitmap.height);
+  const size = Math.min(side, 1000);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
+  bitmap.close();
+  for (const q of [0.88, 0.8, 0.7, 0.6, 0.5]) {
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", q));
+    if (blob && blob.size <= 1024 * 1024) return blob;
+  }
+  throw new ApiError(400, "사진을 줄이지 못했어요");
+}
 
 export const streamUrl = (id: string) => `/api/stream/${enc(id)}`;
 export const coverUrl = (id?: string | null, size = 300) => (id ? `/api/cover/${enc(id)}?size=${size}` : undefined);

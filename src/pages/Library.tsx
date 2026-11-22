@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import { api, formatTime } from "../api";
+import { api, formatTime, songToItem } from "../api";
 import { Cover, ErrorBox, Loading, Page, PlayButtons, SongRow, useLoad } from "../components";
-import { IconChevron } from "../icons";
+import { IconChevron, IconPlus } from "../icons";
+import { useSheets } from "../sheets";
+import { MyPlaylistsList } from "./Playlists";
 
 type Tab = "playlists" | "albums" | "artists" | "downloads";
 
@@ -23,33 +25,11 @@ export function Library() {
           </button>
         ))}
       </div>
-      {tab === "playlists" && <Playlists />}
+      {tab === "playlists" && <MyPlaylistsList />}
       {tab === "albums" && <Albums />}
       {tab === "artists" && <Artists />}
       {tab === "downloads" && <Downloads />}
     </Page>
-  );
-}
-
-function Playlists() {
-  const { data, error, reload } = useLoad(() => api.playlists(), []);
-  if (error) return <ErrorBox message={error} onRetry={reload} />;
-  if (!data) return <Loading />;
-  return (
-    <div className="list">
-      {data.map((pl) => (
-        <Link key={pl.id} to={`/playlist/${encodeURIComponent(pl.id)}`} className="row">
-          <div className="row-cover big">
-            <Cover id={pl.coverArt} size={160} rounded="sm" />
-          </div>
-          <div className="row-text">
-            <div className="row-title">{pl.name}</div>
-            <div className="row-sub">{pl.songCount ?? 0}곡</div>
-          </div>
-          <IconChevron size={18} className="muted" />
-        </Link>
-      ))}
-    </div>
   );
 }
 
@@ -170,6 +150,7 @@ export function PlaylistPage() {
 
 export function AlbumPage() {
   const { id = "" } = useParams();
+  const sheets = useSheets();
   const { data, error, reload } = useLoad(() => api.album(id), [id]);
   const songs = data?.song ?? [];
   return (
@@ -193,6 +174,9 @@ export function AlbumPage() {
               {songs.length}곡{data.duration ? ` · ${formatTime(data.duration)}` : ""}
             </p>
             <PlayButtons songs={songs} />
+            <button className="pill big ghost wide" onClick={() => sheets.addTo(songs.map(songToItem))}>
+              <IconPlus size={18} /> 재생목록에 추가
+            </button>
           </div>
           <div className="list">
             {songs.map((s, i) => (

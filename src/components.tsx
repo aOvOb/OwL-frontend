@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { api, coverUrl, formatTime, ytToSong, type Song, type YtSong } from "./api";
+import { api, coverUrl, formatTime, songToItem, ytToItem, ytToSong, type Song, type YtSong } from "./api";
+import { useSheets, type Action } from "./sheets";
 import {
   IconBack,
   IconCheck,
@@ -10,6 +11,7 @@ import {
   IconHome,
   IconLibrary,
   IconList,
+  IconMore,
   IconMusic,
   IconNext,
   IconPause,
@@ -162,18 +164,42 @@ function Equalizer() {
   );
 }
 
+function MoreButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      className="icon-btn more"
+      aria-label="더 보기"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <IconMore size={20} />
+    </button>
+  );
+}
+
 /** A library song. Tapping plays `list` starting at this song. */
-export function SongRow({ song, list, index, showCover = true, number }: {
+export function SongRow({ song, list, index, showCover = true, number, extraActions = [] }: {
   song: Song;
   list: Song[];
   index: number;
   showCover?: boolean;
   number?: number;
+  extraActions?: Action[];
 }) {
   const p = usePlayer();
+  const sheets = useSheets();
   const active = p.current?.id === song.id;
+  const menu = () =>
+    sheets.actions(song.title ?? "", song.artist, [
+      { label: "다음에 재생", run: () => (p.playNext(song), toast("다음에 재생해요")) },
+      { label: "대기열 맨 뒤에 추가", run: () => (p.addToQueue(song), toast("대기열에 추가했어요")) },
+      { label: "재생목록에 추가", run: () => sheets.addTo([songToItem(song)]) },
+      ...extraActions,
+    ]);
   return (
-    <button className={`row ${active ? "active" : ""}`} onClick={() => p.playList(list, index)}>
+    <div className={`row ${active ? "active" : ""}`} onClick={() => p.playList(list, index)} role="button">
       {showCover ? (
         <div className="row-cover">
           <Cover id={song.coverArt ?? song.id} size={120} rounded="sm" />
@@ -191,7 +217,8 @@ export function SongRow({ song, list, index, showCover = true, number }: {
         <div className="row-sub">{song.artist}</div>
       </div>
       <div className="row-meta">{formatTime(song.duration)}</div>
-    </button>
+      <MoreButton onClick={menu} />
+    </div>
   );
 }
 
@@ -199,12 +226,14 @@ export function SongRow({ song, list, index, showCover = true, number }: {
  * A YouTube Music song from a chart or search: plays if it is in the library,
  * otherwise offers a download button (and shows progress while Yubal works on it).
  */
-export function YtRow({ item, playable, onDownloaded }: {
+export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
   item: YtSong;
   playable: Song[];
   onDownloaded?: (videoId: string) => void;
+  extraActions?: Action[];
 }) {
   const p = usePlayer();
+  const sheets = useSheets();
   const song = ytToSong(item);
   const [requested, setRequested] = useState(false);
   const active = !!song && p.current?.id === song.id;
@@ -215,8 +244,8 @@ export function YtRow({ item, playable, onDownloaded }: {
     const i = playable.findIndex((s) => s.id === song.id);
     p.playList(playable, Math.max(0, i));
   };
-  const download = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const download = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!item.videoId) return;
     setRequested(true);
     try {
@@ -257,6 +286,22 @@ export function YtRow({ item, playable, onDownloaded }: {
           </button>
         ) : null}
       </div>
+      <MoreButton
+        onClick={() =>
+          sheets.actions(item.title, item.artist, [
+            ...(song
+              ? [
+                  { label: "다음에 재생", run: () => (p.playNext(song), toast("다음에 재생해요")) },
+                  { label: "대기열 맨 뒤에 추가", run: () => (p.addToQueue(song), toast("대기열에 추가했어요")) },
+                ]
+              : item.videoId && !downloading
+                ? [{ label: "서버에 받기", run: () => download() }]
+                : []),
+            { label: "재생목록에 추가", run: () => sheets.addTo([ytToItem(item)]) },
+            ...extraActions,
+          ])
+        }
+      />
     </div>
   );
 }

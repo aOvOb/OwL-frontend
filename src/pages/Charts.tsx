@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
-import { api, ytToSong, type Song } from "../api";
+import { api, ytToItem, ytToSong, type Song } from "../api";
 import { ErrorBox, Loading, Page, PlayButtons, toast, useLoad, YtRow } from "../components";
-import { IconDownload } from "../icons";
+import { IconDownload, IconPlus } from "../icons";
+import { useSheets } from "../sheets";
 
 export const CHART_STYLE = [
   { key: "melon", prefix: "멜론", brand: "Melon", label: "TOP 100", bg: "linear-gradient(140deg,#1f9b48,#0b4a24)" },
@@ -53,6 +54,7 @@ export function ChartPage() {
   const style = CHART_STYLE.find((s) => s.key === key);
   const { data, error, reload } = useLoad(() => api.charts(key), [key]);
   const chart = data?.[0];
+  const sheets = useSheets();
   const [busy, setBusy] = useState(false);
 
   // Refresh while downloads are running so finished songs become playable.
@@ -101,6 +103,9 @@ export function ChartPage() {
         <>
           <div className="play-row">
             <PlayButtons songs={playable} />
+            <button className="pill big ghost" onClick={() => sheets.addTo(chart.entries.filter((e) => e.videoId || e.songId).map(ytToItem))}>
+              <IconPlus size={18} /> 차트 전체를 재생목록에 추가
+            </button>
             {missing.length > 0 && (
               <button className="pill big ghost" onClick={downloadAll} disabled={busy}>
                 <IconDownload size={18} /> 나머지 {missing.length}곡 받기

@@ -73,7 +73,7 @@ export function useChartOrder() {
 const LONG_PRESS_MS = 450;
 
 export function ChartsIndex() {
-  const { data, error, reload } = useLoad(() => api.charts(), []);
+  const { data, error, reload } = useLoad(() => api.charts(undefined, 3), []);
   const { order, save } = useChartOrder();
   const [list, setList] = useState<string[]>(order);
   const [drag, setDrag] = useState<{ key: string; dy: number } | null>(null);
@@ -159,7 +159,6 @@ export function ChartsIndex() {
             const s = CHART_STYLE.find((x) => x.key === key)!;
             const c = data.find((x) => x.key === s.key);
             if (!c) return null;
-            const have = c.entries.filter((e) => e.songId).length;
             const dragging = drag?.key === s.key;
             return (
               <Link
@@ -189,7 +188,7 @@ export function ChartsIndex() {
                   <div className="chart-banner-name">{s.label}</div>
                   <div className="chart-basis">{formatBasis(c.basis)}</div>
                   <div className="chart-tile-count">
-                    {have}/{c.entries.length}곡 보관 중
+                    서버에서 {c.have}/{c.total}곡 듣기 가능
                   </div>
                 </div>
                 <div className="chart-fan" aria-hidden>
@@ -257,7 +256,7 @@ export function ChartPage() {
           <>
             <div className="chart-basis">{formatBasis(chart.basis)}</div>
             <div className="chart-tile-count">
-              {playable.length}/{chart.entries.length}곡 보관 중
+              서버에서 {playable.length}/{chart.entries.length}곡 듣기 가능
             </div>
           </>
         )}

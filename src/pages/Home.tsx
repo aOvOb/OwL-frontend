@@ -8,7 +8,7 @@ import { MyPlaylistsShelf } from "./Playlists";
 
 export default function Home({ onLogout }: { onLogout: () => void }) {
   const { data, error, reload } = useLoad(() => api.albums("newest", 20), []);
-  const charts = useLoad(() => api.charts(), []);
+  const charts = useLoad(() => api.charts(undefined, 1), []);
   const chartOrder = useChartOrder();
   const p = usePlayer();
 

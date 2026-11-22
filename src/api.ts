@@ -66,7 +66,7 @@ export type Prefs = { chartOrder: string[] };
 /** As of when a chart counts: date "YYYY-MM-DD", optional "HH:MM", and the period (실시간/일간/주간). */
 export type ChartBasis = { date: string; time?: string | null; period: string };
 
-export type Chart = { key: string; name: string; updated?: number | null; basis?: ChartBasis | null; entries: YtSong[] };
+export type Chart = { key: string; name: string; updated?: number | null; basis?: ChartBasis | null; total: number; have: number; entries: YtSong[] };
 
 /** "2026년 11월 22일 22시 기준 · 실시간" */
 export const formatBasis = (b?: ChartBasis | null) => {
@@ -146,7 +146,9 @@ export const api = {
   artist: (id: string) => request<Artist>(`/artists/${enc(id)}`),
   search: (q: string) => request<SearchResult>(`/search?q=${enc(q)}`),
   randomSongs: (size = 50) => request<Song[]>(`/songs/random?size=${size}`),
-  charts: (key?: string) => request<Chart[]>(`/charts${key ? `?key=${enc(key)}` : ""}`),
+  /** top=N: only the first N songs per chart (home, chart list); total/have always cover the whole chart. */
+  charts: (key?: string, top?: number) =>
+    request<Chart[]>(`/charts?${new URLSearchParams({ ...(key ? { key } : {}), ...(top ? { top: String(top) } : {}) })}`),
   ytSearch: (q: string) => request<YtSong[]>(`/yt/search?q=${enc(q)}`),
   download: (videoId: string) => request<{ id: string }>("/yt/download", { method: "POST", body: JSON.stringify({ videoId }) }),
   downloadUrl: (url: string) => request<{ id: string }>("/yt/download", { method: "POST", body: JSON.stringify({ url }) }),

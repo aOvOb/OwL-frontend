@@ -60,6 +60,34 @@ export type YtSong = {
 /** Lyrics saved with the song. Synced lines have a start time in seconds. */
 export type Lyrics = { synced: boolean; lines: { t: number | null; text: string }[] };
 
+/** One song in the server's download queue. */
+export type QueuedSong = {
+  videoId: string;
+  title: string;
+  artist: string;
+  album?: string | null;
+  thumbnail?: string | null;
+  source: "manual" | "playlist" | "chart" | "album";
+  status: "queued" | "sent" | "retrying" | "failed" | "done";
+  attempts: number;
+  reason?: "bot" | "region" | "gone" | "other" | null;
+  reasonText?: string | null;
+  next_try?: number | null;
+};
+
+export type DownloadQueue = {
+  pausedUntil: number | null;
+  pausedManually: boolean;
+  tunnel: boolean;
+  ratePerHour: number;
+  sentLastHour: number;
+  counts: Partial<Record<QueuedSong["status"], number>>;
+  active: QueuedSong[];
+  queued: QueuedSong[];
+  retrying: QueuedSong[];
+  failed: QueuedSong[];
+};
+
 /** Per-account settings. */
 export type Prefs = { chartOrder: string[] };
 
@@ -165,6 +193,11 @@ export const api = {
   jobs: () => request<{ jobs: Job[] }>("/yt/jobs"),
 
   lyrics: (songId: string) => request<Lyrics>(`/lyrics/${enc(songId)}`),
+  downloads: () => request<DownloadQueue>("/downloads"),
+  retryDownloads: (videoIds?: string[]) =>
+    request<{ count: number }>("/downloads/retry", { method: "POST", body: JSON.stringify({ videoIds: videoIds ?? null }) }),
+  dropDownloads: (videoIds: string[]) =>
+    request<{ count: number }>("/downloads/drop", { method: "POST", body: JSON.stringify({ videoIds }) }),
   prefs: () => request<Prefs>("/my/prefs"),
   savePrefs: (p: Prefs) => request<Prefs>("/my/prefs", { method: "PUT", body: JSON.stringify(p) }),
 

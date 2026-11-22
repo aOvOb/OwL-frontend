@@ -4,6 +4,8 @@ import { api, formatTime, songToItem } from "../api";
 import { Cover, ErrorBox, Loading, Page, PlayButtons, SongRow, useLoad } from "../components";
 import { IconChevron, IconPlus } from "../icons";
 import { useSheets } from "../sheets";
+import { Windowed } from "../windowed";
+import { Downloads } from "./Downloads";
 import { MyPlaylistsList } from "./Playlists";
 
 type Tab = "playlists" | "albums" | "artists" | "downloads";
@@ -39,13 +41,15 @@ function Albums() {
   if (!data) return <Loading />;
   return (
     <div className="grid pad">
-      {data.map((a) => (
-        <Link key={a.id} to={`/album/${encodeURIComponent(a.id)}`} className="card">
-          <Cover id={a.coverArt ?? a.id} size={300} />
-          <div className="card-title">{a.name}</div>
-          <div className="card-sub">{a.artist}</div>
-        </Link>
-      ))}
+      <Windowed items={data} keyOf={(a) => a.id} step={40}>
+        {(a) => (
+          <Link to={`/album/${encodeURIComponent(a.id)}`} className="card">
+            <Cover id={a.coverArt ?? a.id} size={300} />
+            <div className="card-title">{a.name}</div>
+            <div className="card-sub">{a.artist}</div>
+          </Link>
+        )}
+      </Windowed>
     </div>
   );
 }
@@ -56,64 +60,21 @@ function Artists() {
   if (!data) return <Loading />;
   return (
     <div className="list">
-      {data.map((a) => (
-        <Link key={a.id} to={`/artist/${encodeURIComponent(a.id)}`} className="row">
-          <div className="row-cover">
-            <Cover id={a.coverArt ?? a.id} size={120} rounded="full" />
-          </div>
-          <div className="row-text">
-            <div className="row-title">{a.name}</div>
-            <div className="row-sub">앨범 {a.albumCount ?? 0}개</div>
-          </div>
-          <IconChevron size={18} className="muted" />
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-const STATUS: Record<string, string> = {
-  pending: "대기 중",
-  fetching_info: "정보 확인 중",
-  downloading: "받는 중",
-  importing: "정리 중",
-  completed: "완료",
-  failed: "실패",
-  cancelled: "취소됨",
-};
-
-function Downloads() {
-  const { data, error, reload } = useLoad(() => api.jobs(), []);
-  if (error) return <ErrorBox message={error} onRetry={reload} />;
-  if (!data) return <Loading />;
-  const jobs = [...data.jobs].reverse();
-  const active = jobs.filter((j) => !["completed", "failed", "cancelled"].includes(j.status)).length;
-  return (
-    <>
-      <div className="downloads-head">
-        <span>
-          진행 중 {active}개 · 전체 {jobs.length}개
-        </span>
-        <button className="pill" onClick={reload}>
-          새로고침
-        </button>
-      </div>
-      <div className="list">
-        {jobs.length === 0 && <p className="empty">다운로드 기록이 없어요</p>}
-        {jobs.slice(0, 200).map((j) => (
-          <div key={j.id} className="row static">
+      <Windowed items={data} keyOf={(a) => a.id}>
+        {(a) => (
+          <Link to={`/artist/${encodeURIComponent(a.id)}`} className="row">
+            <div className="row-cover">
+              <Cover id={a.coverArt ?? a.id} size={120} rounded="full" />
+            </div>
             <div className="row-text">
-              <div className="row-title">{j.content_info?.title ?? j.url.replace(/^https:\/\/(music\.)?youtube\.com\//, "")}</div>
-              <div className="row-sub">{j.content_info?.artist ?? ""}</div>
+              <div className="row-title">{a.name}</div>
+              <div className="row-sub">앨범 {a.albumCount ?? 0}개</div>
             </div>
-            <div className={`job-status s-${j.status}`}>
-              {STATUS[j.status] ?? j.status}
-              {j.status === "downloading" && j.progress ? ` ${Math.round(j.progress)}%` : ""}
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
+            <IconChevron size={18} className="muted" />
+          </Link>
+        )}
+      </Windowed>
+    </div>
   );
 }
 

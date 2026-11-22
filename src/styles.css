@@ -105,6 +105,27 @@ img { display: block; }
 .chart-tile-name { font-size: 20px; font-weight: 800; line-height: 1.15; margin-top: 2px; }
 .chart-tile-count { font-size: 12px; opacity: .8; margin-top: 6px; }
 .chart-basis { font-size: 12.5px; font-weight: 600; opacity: .92; margin-top: 6px; }
+/* tile with artwork (home shelf) */
+.chart-tile.art { padding: 0; }
+.chart-tile-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.chart-tile-shade { position: absolute; inset: 0; }
+.chart-tile-text { position: relative; z-index: 1; display: flex; flex-direction: column; padding: 12px; text-shadow: 0 1px 8px rgba(0,0,0,.35); }
+.chart-tile-text .chart-tile-count { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* fanned top-3 covers (chart list) */
+.chart-fan { position: relative; width: 118px; height: 96px; flex: none; align-self: center; }
+.chart-fan img { position: absolute; width: 78px; height: 78px; border-radius: 8px; object-fit: cover; box-shadow: 0 8px 18px rgba(0,0,0,.45); }
+.chart-fan .fan-0 { z-index: 3; right: 0; top: 9px; }
+.chart-fan .fan-1 { z-index: 2; right: 24px; top: 4px; transform: rotate(-8deg) scale(.9); opacity: .92; }
+.chart-fan .fan-2 { z-index: 1; right: 46px; top: 2px; transform: rotate(-15deg) scale(.8); opacity: .8; }
+
+/* chart page hero: blurred #1 cover behind, top-4 mosaic in front */
+.chart-hero { position: relative; overflow: hidden; min-height: 190px; }
+.chart-hero > *:not(.chart-hero-bg):not(.chart-hero-mosaic) { position: relative; z-index: 1; max-width: 55%; }
+.chart-hero-bg { position: absolute; inset: -30px; width: calc(100% + 60px); height: calc(100% + 60px); object-fit: cover; filter: blur(28px) saturate(1.3); opacity: .45; }
+.chart-hero-mosaic { position: absolute; z-index: 1; right: 16px; top: 50%; transform: translateY(-50%) rotate(4deg); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 132px; height: 132px; border-radius: 10px; overflow: hidden; box-shadow: 0 14px 30px rgba(0,0,0,.5); }
+.chart-hero-mosaic img { width: 100%; height: 100%; object-fit: cover; }
+
 .chart-list { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
 .chart-banner { display: flex; justify-content: space-between; gap: 14px; padding: 18px; border-radius: 14px; color: #fff; min-height: 128px; }
 .chart-banner-name { font-size: 24px; font-weight: 800; margin-top: 2px; }

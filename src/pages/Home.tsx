@@ -3,7 +3,7 @@ import { api } from "../api";
 import { Cover, ErrorBox, Loading, Page, Section, useLoad } from "../components";
 import { IconChevron, IconLogout, IconShuffle } from "../icons";
 import { usePlayer } from "../player";
-import { CHART_STYLE } from "./Charts";
+import { CHART_STYLE, ChartTile } from "./Charts";
 import { MyPlaylistsShelf } from "./Playlists";
 
 export default function Home({ onLogout }: { onLogout: () => void }) {
@@ -44,14 +44,7 @@ export default function Home({ onLogout }: { onLogout: () => void }) {
           <div className="shelf">
             {CHART_STYLE.map((s) => {
               const c = charts.data!.find((x) => x.key === s.key);
-              if (!c) return null;
-              return (
-                <Link key={s.key} to={`/charts/${s.key}`} className="chart-tile" style={{ background: s.bg }}>
-                  <span className="chart-tile-brand">{s.brand}</span>
-                  <span className="chart-tile-name">{s.label}</span>
-                  <span className="chart-tile-count">1위 {c.entries[0]?.title ?? ""}</span>
-                </Link>
-              );
+              return c ? <ChartTile key={s.key} chart={c} style={s} /> : null;
             })}
           </div>
         )}

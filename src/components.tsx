@@ -111,8 +111,8 @@ export function Page({ title, back, right, children, large = true }: {
             </button>
           )}
         </div>
-        {/* Large-title screens keep the bar empty when scrolled (only detail pages show a title). */}
-        <div className={`topbar-title ${!large ? "show" : ""}`}>{large ? "" : title}</div>
+        {/* No title in the bar (Apple Music style): pages show it large, detail pages under the artwork. */}
+        <div className="topbar-title" />
         <div className="topbar-side right">{right}</div>
       </header>
       {large && title && <h1 className="large-title">{title}</h1>}

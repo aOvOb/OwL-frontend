@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { api, itemToSong, prepareCover, songToItem, ytToItem, type ItemInput, type PlaylistSummary, type Song } from "../api";
 import { Cover, ErrorBox, Loading, Page, PlayButtons, useLoad, YtRow } from "../components";
-import { IconCheck, IconChevron, IconDownload, IconMore, IconPlus, IconSearch } from "../icons";
+import { IconCheck, IconChevron, IconDownload, IconMore, IconPlus, IconSearch, IconSort } from "../icons";
 import { PlaylistThumb, useSheets } from "../sheets";
+import { SORT_LABEL, sortActions, sortItems, useSort } from "../sort";
 import { Windowed } from "../windowed";
 
 /** Reloads when any screen adds to or changes a playlist. */
@@ -219,7 +220,13 @@ export function MyPlaylistPage() {
     return () => clearInterval(t);
   }, [pending, reload]);
 
-  const playable = useMemo(() => (data?.items ?? []).map(itemToSong).filter((s): s is Song => !!s), [data]);
+  // Sort choice per playlist (this device). Play order follows what is shown.
+  const [sort, setSort] = useSort(`playlist-${id}`, { key: "manual", dir: "asc" });
+  const items = useMemo(
+    () => sortItems(data?.items ?? [], sort, { title: (i) => i.title, artist: (i) => i.artist, added: (i) => i.addedAt || 0 }),
+    [data, sort],
+  );
+  const playable = useMemo(() => items.map(itemToSong).filter((s): s is Song => !!s), [items]);
   const missing = (data?.items ?? []).filter((i) => !i.songId && !i.downloading && i.videoId);
 
   const changed = () => {
@@ -288,9 +295,14 @@ export function MyPlaylistPage() {
       back
       large={false}
       right={
-        <button className="icon-btn accent" onClick={menu} aria-label="재생목록 메뉴">
-          <IconMore size={22} />
-        </button>
+        <>
+          <button className="icon-btn accent" onClick={() => sheets.actions("정렬", `${SORT_LABEL[sort.key]} · ${sort.dir === "asc" ? "오름차순" : "내림차순"}`, sortActions(sort, setSort))} aria-label="정렬">
+            <IconSort size={21} />
+          </button>
+          <button className="icon-btn accent" onClick={menu} aria-label="재생목록 메뉴">
+            <IconMore size={22} />
+          </button>
+        </>
       }
     >
       <input ref={fileInput} type="file" accept="image/*" hidden onChange={(e) => pickCover(e.target.files?.[0])} />
@@ -322,7 +334,7 @@ export function MyPlaylistPage() {
           </div>
           {data.items.length === 0 && <p className="empty">아직 노래가 없어요. 노래 추가를 눌러 찾아 보세요</p>}
           <div className="list">
-            <Windowed items={data.items} keyOf={(it) => `${it.index}-${it.videoId ?? it.songId}`}>
+            <Windowed items={items} keyOf={(it) => `${it.index}-${it.videoId ?? it.songId}`}>
               {(it) => (
                 <YtRow
                   item={{ ...it, videoId: it.videoId ?? null, title: it.title, artist: it.artist }}

@@ -43,7 +43,7 @@ img { display: block; }
    is drawn as a separate low-resolution layer, which made the title look blurry until the page moved. */
 .topbar {
   position: sticky; top: 0; z-index: 20;
-  display: grid; grid-template-columns: 72px 1fr 72px; align-items: center;
+  display: grid; grid-template-columns: minmax(72px, auto) 1fr minmax(72px, auto); align-items: center;
   height: calc(48px + var(--safe-top)); padding: calc(var(--safe-top) + 4px) 8px 0;
   background: var(--bg);
 }

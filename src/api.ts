@@ -174,6 +174,7 @@ export const api = {
   artist: (id: string) => request<Artist>(`/artists/${enc(id)}`),
   search: (q: string) => request<SearchResult>(`/search?q=${enc(q)}`),
   randomSongs: (size = 50) => request<Song[]>(`/songs/random?size=${size}`),
+  recentSongs: (size = 50) => request<Song[]>(`/songs/recent?size=${size}`),
   /** top=N: only the first N songs per chart (home, chart list); total/have always cover the whole chart. */
   charts: (key?: string, top?: number) =>
     request<Chart[]>(`/charts?${new URLSearchParams({ ...(key ? { key } : {}), ...(top ? { top: String(top) } : {}) })}`),

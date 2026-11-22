@@ -86,6 +86,13 @@ export function AddSongsPage() {
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState<Set<string>>(new Set());
   const { data: pl } = useLoad(() => api.myPlaylist(id), [id]);
+  // Before searching: songs already on the server, newest downloads first or shuffled.
+  const [suggest, setSuggest] = useState<"recent" | "random">("recent");
+  const [shuffleTick, setShuffleTick] = useState(0);
+  const suggestions = useLoad(
+    () => (suggest === "recent" ? api.recentSongs(60) : api.randomSongs(60)).then((s) => s.map(songToItem)),
+    [suggest, shuffleTick],
+  );
 
   const keyOf = (i: ItemInput) => i.videoId ?? i.songId ?? `${i.title}|${i.artist}`;
   const already = useMemo(() => new Set((pl?.items ?? []).map(keyOf)), [pl]);
@@ -132,7 +139,16 @@ export function AddSongsPage() {
     <Page title={pl ? `${pl.name}에 추가` : "노래 추가"} back large={false}>
       <form className="searchbar top" onSubmit={search}>
         <IconSearch size={18} />
-        <input autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="노래, 가수" enterKeyHint="search" type="search" />
+        <input
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (!e.target.value) setResults(null); // cleared: back to suggestions
+          }}
+          placeholder="노래, 가수"
+          enterKeyHint="search"
+          type="search"
+        />
       </form>
       <div className="segmented">
         <button className={scope === "yt" ? "on" : ""} onClick={() => setScope("yt")}>
@@ -144,9 +160,23 @@ export function AddSongsPage() {
       </div>
       {loading && <Loading />}
       {!loading && results && results.length === 0 && <p className="empty">검색 결과가 없어요</p>}
-      {!loading && results && (
+      {!loading && !results && (
+        <div className="suggest-head">
+          <button className={`chip ${suggest === "recent" ? "on" : ""}`} onClick={() => setSuggest("recent")}>
+            최근 받은 곡
+          </button>
+          <button
+            className={`chip ${suggest === "random" ? "on" : ""}`}
+            onClick={() => (suggest === "random" ? setShuffleTick((n) => n + 1) : setSuggest("random"))}
+          >
+            무작위{suggest === "random" ? " · 다시 섞기" : ""}
+          </button>
+        </div>
+      )}
+      {!loading && !results && !suggestions.data && <Loading />}
+      {!loading && (results ?? suggestions.data) && (
         <div className="list">
-          {results.map((r) => {
+          {(results ?? suggestions.data ?? []).map((r) => {
             const k = keyOf(r);
             const done = added.has(k) || already.has(k);
             return (

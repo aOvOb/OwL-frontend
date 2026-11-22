@@ -190,6 +190,9 @@ img { display: block; }
 .segmented button.on { background: #3a2b2e; color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .searchbar { display: flex; align-items: center; gap: 8px; margin: 0 20px 12px; padding: 0 12px; height: 38px; border-radius: 10px; background: var(--bg-elev2); color: var(--muted); }
 .searchbar.top { margin-top: 10px; }
+.suggest-head { display: flex; gap: 8px; padding: 2px 20px 8px; }
+.chip { padding: 7px 13px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--muted); background: var(--bg-elev2); }
+.chip.on { color: #fff; background: var(--accent-deep); }
 .add-row-icon { width: 48px; height: 48px; flex: none; display: grid; place-items: center; border-radius: 6px; background: var(--bg-elev2); color: var(--accent); }
 a.pill { text-decoration: none; }
 .icon-btn:disabled { color: var(--muted); }

@@ -136,22 +136,8 @@ export const IconLogout = (p: P) => (
     <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11" />
   </Svg>
 );
-/** iOS share button: a box with an arrow going up. */
-export const IconShare = (p: P) => (
-  <Svg {...p}>
-    <path d="M12 3v12M8 7l4-4 4 4M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2" />
-  </Svg>
-);
 export const IconClose = (p: P) => (
   <Svg {...p}>
     <path d="M6 6l12 12M18 6 6 18" />
-  </Svg>
-);
-/** Android/Chrome browser menu: three dots in a column. */
-export const IconKebab = (p: P) => (
-  <Svg {...p} fill>
-    <circle cx="12" cy="5" r="1.8" />
-    <circle cx="12" cy="12" r="1.8" />
-    <circle cx="12" cy="19" r="1.8" />
   </Svg>
 );

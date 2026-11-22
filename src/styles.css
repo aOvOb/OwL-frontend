@@ -380,12 +380,33 @@ a.pill { text-decoration: none; }
 .install-head { display: flex; align-items: center; gap: 10px; }
 .install-logo { width: 40px; height: 40px; border-radius: 10px; flex: none; }
 .install-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.install-text b { font-size: 15px; }
+.install-text b { font-size: 15px; word-break: keep-all; }
 .install-text span { font-size: 12.5px; color: var(--muted); word-break: keep-all; }
 .install-btn { flex: none; height: 32px; padding: 0 14px; border-radius: 16px; font-size: 14px; font-weight: 700; color: #fff; background: var(--accent); }
 .install-close { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); }
-.install-steps { margin: 10px 4px 2px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.5; word-break: keep-all; }
-.install-steps b { color: var(--bone); }
-.install-ico { display: inline-block; vertical-align: -3px; color: #4ba3ff; }
-.install-ico.boxed { padding: 1px; border: 1.5px solid currentColor; border-radius: 4px; color: var(--text); }
-.install-note { list-style: none; margin-left: -20px; font-size: 12.5px; color: var(--muted); }
+
+/* Install guide: full-screen overlay at #install */
+.guide { position: fixed; inset: 0; z-index: 65; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: var(--bg); padding: calc(var(--safe-top) + 4px) 16px calc(var(--safe-bottom) + 32px); }
+.guide > * { max-width: 520px; margin-left: auto; margin-right: auto; }
+.guide-top { height: 44px; display: flex; align-items: center; }
+.guide-back { width: 40px; height: 40px; margin-left: -8px; display: grid; place-items: center; color: var(--accent); }
+.guide-hero { text-align: center; padding: 4px 8px 18px; }
+.guide-hero img { display: block; margin: 0 auto; width: 76px; height: 76px; border-radius: 18px; box-shadow: 0 14px 30px -10px rgba(158,31,39,.7); }
+.guide-hero h1 { margin: 14px 0 6px; font-size: 26px; }
+.guide-hero p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.55; word-break: keep-all; }
+.guide-install { display: block; width: 100%; height: 48px; margin-bottom: 16px; border-radius: 12px; font-weight: 700; font-size: 16px; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-deep)); }
+.guide-callout { margin-bottom: 16px; padding: 12px 14px; border-radius: 12px; font-size: 14px; line-height: 1.55; word-break: keep-all; background: rgba(224,65,74,.1); border: 1px solid rgba(224,65,74,.25); }
+.guide-callout.ok { background: rgba(80,200,120,.1); border-color: rgba(80,200,120,.3); }
+.guide-callout b { color: var(--bone); }
+.guide-copy { display: block; margin-top: 10px; height: 34px; padding: 0 14px; border-radius: 17px; font-size: 14px; font-weight: 600; color: var(--text); background: rgba(255,255,255,.08); }
+.guide-tabs { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--bg-elev); margin-bottom: 18px; }
+.guide-tabs button { flex: 1; height: 34px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.guide-tabs button[aria-selected="true"] { background: #2a2023; color: var(--text); }
+.guide-steps { list-style: none; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 22px; }
+.guide-steps li { display: flex; gap: 12px; }
+.guide-num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; background: var(--accent); }
+.guide-body { flex: 1; min-width: 0; }
+.guide-body p { margin: 2px 0 10px; font-size: 15px; line-height: 1.55; word-break: keep-all; }
+.guide-body b { color: var(--bone); }
+.guide-svg { display: block; max-width: 340px; }
+.guide-foot { margin-top: 24px; font-size: 13px; line-height: 1.55; color: var(--muted); word-break: keep-all; }

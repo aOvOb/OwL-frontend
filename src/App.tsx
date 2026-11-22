@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-route
 import { api } from "./api";
 import { Loading, MiniPlayer, NowPlaying, TabBar, Toaster, toast } from "./components";
 import { AddSongsPage, MyPlaylistPage } from "./pages/Playlists";
-import { InstallBanner } from "./install";
+import { InstallBanner, InstallGuide, useGuideOpen } from "./install";
 import { SheetProvider } from "./sheets";
 import { ChartPage, ChartsIndex } from "./pages/Charts";
 import Home from "./pages/Home";
@@ -88,6 +88,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
 
 export default function App() {
   const [user, setUser] = useState<string | null | undefined>(undefined);
+  const guideOpen = useGuideOpen();
 
   useEffect(() => {
     api.me().then((m) => setUser(m.username), () => setUser(null));
@@ -101,12 +102,14 @@ export default function App() {
     setUser(null);
   };
 
+  const guide = guideOpen && <InstallGuide />;
   if (user === undefined) return <Loading />;
   if (user === null)
     return (
       <>
         <InstallBanner />
         <Login onLogin={setUser} />
+        {guide}
       </>
     );
   return (
@@ -115,6 +118,7 @@ export default function App() {
         <SheetProvider toast={toast}>
           <InstallBanner />
           <Shell onLogout={logout} />
+          {guide}
         </SheetProvider>
       </PlayerProvider>
     </BrowserRouter>

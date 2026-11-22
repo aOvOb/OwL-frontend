@@ -55,6 +55,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
   return (
     <>
       <ScrollTop />
+      <div className="status-cover" aria-hidden />
       <main className="content">
         <Routed>
         <Routes>

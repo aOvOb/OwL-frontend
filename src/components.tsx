@@ -110,7 +110,8 @@ export function Page({ title, back, right, children, large = true }: {
             </button>
           )}
         </div>
-        <div className={`topbar-title ${scrolled || !large ? "show" : ""}`}>{title}</div>
+        {/* Large-title screens keep the bar empty when scrolled (only detail pages show a title). */}
+        <div className={`topbar-title ${!large ? "show" : ""}`}>{large ? "" : title}</div>
         <div className="topbar-side right">{right}</div>
       </header>
       {large && title && <h1 className="large-title">{title}</h1>}

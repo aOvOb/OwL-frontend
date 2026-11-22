@@ -3,12 +3,13 @@ import { api } from "../api";
 import { Cover, ErrorBox, Loading, Page, Section, useLoad } from "../components";
 import { IconChevron, IconLogout, IconShuffle } from "../icons";
 import { usePlayer } from "../player";
-import { CHART_STYLE, ChartTile } from "./Charts";
+import { ChartTile, useChartOrder } from "./Charts";
 import { MyPlaylistsShelf } from "./Playlists";
 
 export default function Home({ onLogout }: { onLogout: () => void }) {
   const { data, error, reload } = useLoad(() => api.albums("newest", 20), []);
   const charts = useLoad(() => api.charts(), []);
+  const chartOrder = useChartOrder();
   const p = usePlayer();
 
   const shuffleAll = async () => {
@@ -42,7 +43,7 @@ export default function Home({ onLogout }: { onLogout: () => void }) {
         {!charts.data && <Loading />}
         {charts.data && (
           <div className="shelf">
-            {CHART_STYLE.map((s) => {
+            {chartOrder.styles.map((s) => {
               const c = charts.data!.find((x) => x.key === s.key);
               return c ? <ChartTile key={s.key} chart={c} style={s} /> : null;
             })}

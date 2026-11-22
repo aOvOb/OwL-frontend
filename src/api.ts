@@ -57,6 +57,9 @@ export type YtSong = {
   ytArtist?: string | null;
 };
 
+/** Per-account settings. */
+export type Prefs = { chartOrder: string[] };
+
 /** As of when a chart counts: date "YYYY-MM-DD", optional "HH:MM", and the period (실시간/일간/주간). */
 export type ChartBasis = { date: string; time?: string | null; period: string };
 
@@ -147,6 +150,9 @@ export const api = {
   downloadMany: (videoIds: string[]) =>
     request<{ queued: number }>("/yt/download/bulk", { method: "POST", body: JSON.stringify({ videoIds }) }),
   jobs: () => request<{ jobs: Job[] }>("/yt/jobs"),
+
+  prefs: () => request<Prefs>("/my/prefs"),
+  savePrefs: (p: Prefs) => request<Prefs>("/my/prefs", { method: "PUT", body: JSON.stringify(p) }),
 
   myPlaylists: () => request<PlaylistSummary[]>("/my/playlists"),
   myPlaylist: (id: string) => request<MyPlaylist>(`/my/playlists/${enc(id)}`),

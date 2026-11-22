@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import { api, formatBasis, ytToItem, ytToSong, type Chart, type Song, type YtSong } from "../api";
 import { ErrorBox, Loading, Page, PlayButtons, toast, useLoad, YtRow } from "../components";
@@ -40,20 +40,150 @@ export function ChartTile({ chart, style }: { chart: Chart; style: (typeof CHART
   );
 }
 
+type ChartStyle = (typeof CHART_STYLE)[number];
+let savedOrder: string[] | null = null; // per session, so tabs do not flash the default order
+
+const normalizeOrder = (keys: string[] | undefined) => {
+  const known = CHART_STYLE.map((s) => s.key);
+  const kept = (keys ?? []).filter((k) => known.includes(k));
+  return [...kept, ...known.filter((k) => !kept.includes(k))];
+};
+
+/** Chart order for this account (saved on the server, so it follows the account across devices). */
+export function useChartOrder() {
+  const [order, setOrder] = useState<string[]>(savedOrder ?? normalizeOrder([]));
+  useEffect(() => {
+    api.prefs().then(
+      (p) => {
+        savedOrder = normalizeOrder(p.chartOrder);
+        setOrder(savedOrder);
+      },
+      () => {},
+    );
+  }, []);
+  const save = (next: string[]) => {
+    savedOrder = next;
+    setOrder(next);
+    api.savePrefs({ chartOrder: next }).catch((e) => toast(e.message));
+  };
+  const styles = order.map((k) => CHART_STYLE.find((s) => s.key === k)).filter((s): s is ChartStyle => !!s);
+  return { order, styles, save };
+}
+
+const LONG_PRESS_MS = 450;
+
 export function ChartsIndex() {
   const { data, error, reload } = useLoad(() => api.charts(), []);
+  const { order, save } = useChartOrder();
+  const [list, setList] = useState<string[]>(order);
+  const [drag, setDrag] = useState<{ key: string; dy: number } | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const press = useRef<{ timer: number; key: string; startY: number; startIndex: number; h: number; active: boolean } | null>(null);
+  const blockClick = useRef(false);
+  const listNow = useRef(list);
+  listNow.current = list;
+
+  useEffect(() => {
+    if (!press.current?.active) setList(order);
+  }, [order]);
+
+  // While dragging, stop the page from scrolling (needs a non-passive listener).
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const stop = (e: TouchEvent) => press.current?.active && e.preventDefault();
+    el.addEventListener("touchmove", stop, { passive: false });
+    return () => el.removeEventListener("touchmove", stop);
+  }, [data]);
+
+  const begin = (key: string, y: number, target: HTMLElement) => {
+    const startIndex = listNow.current.indexOf(key);
+    const h = target.offsetHeight + 12; // row height + gap
+    press.current = {
+      key,
+      startY: y,
+      startIndex,
+      h,
+      active: false,
+      timer: window.setTimeout(() => {
+        if (!press.current) return;
+        press.current.active = true;
+        navigator.vibrate?.(12);
+        setDrag({ key, dy: 0 });
+      }, LONG_PRESS_MS),
+    };
+  };
+
+  const move = (y: number) => {
+    const p = press.current;
+    if (!p) return;
+    const dy = y - p.startY;
+    if (!p.active) {
+      if (Math.abs(dy) > 8) {
+        clearTimeout(p.timer); // normal scroll, not a long press
+        press.current = null;
+      }
+      return;
+    }
+    const cur = listNow.current;
+    const target = Math.max(0, Math.min(cur.length - 1, p.startIndex + Math.round(dy / p.h)));
+    const at = cur.indexOf(p.key);
+    if (target !== at) {
+      const next = cur.filter((k) => k !== p.key);
+      next.splice(target, 0, p.key);
+      setList(next);
+    }
+    setDrag({ key: p.key, dy: dy - (target - p.startIndex) * p.h });
+  };
+
+  const end = () => {
+    const p = press.current;
+    press.current = null;
+    if (!p) return;
+    clearTimeout(p.timer);
+    if (p.active) {
+      blockClick.current = true; // the finger lifting must not open the chart
+      setDrag(null);
+      if (listNow.current.join() !== order.join()) save(listNow.current);
+    }
+  };
+
   return (
     <Page title="차트">
       {error && <ErrorBox message={error} onRetry={reload} />}
       {!data && !error && <Loading />}
-      <div className="chart-list">
+      {data && <p className="hint">꾹 눌러서 끌면 순서를 바꿀 수 있어요</p>}
+      <div className="chart-list" ref={listRef}>
         {data &&
-          CHART_STYLE.map((s) => {
+          list.map((key) => {
+            const s = CHART_STYLE.find((x) => x.key === key)!;
             const c = data.find((x) => x.key === s.key);
             if (!c) return null;
             const have = c.entries.filter((e) => e.songId).length;
+            const dragging = drag?.key === s.key;
             return (
-              <Link key={s.key} to={`/charts/${s.key}`} className="chart-banner" style={{ background: s.bg }}>
+              <Link
+                key={s.key}
+                to={`/charts/${s.key}`}
+                className={`chart-banner ${dragging ? "dragging" : ""} ${drag ? "reordering" : ""}`}
+                style={{ background: s.bg, transform: dragging ? `translateY(${drag!.dy}px) scale(1.03)` : undefined }}
+                onTouchStart={(e) => begin(s.key, e.touches[0].clientY, e.currentTarget)}
+                onTouchMove={(e) => move(e.touches[0].clientY)}
+                onTouchEnd={end}
+                onTouchCancel={end}
+                onMouseDown={(e) => begin(s.key, e.clientY, e.currentTarget)}
+                onMouseMove={(e) => press.current && move(e.clientY)}
+                onMouseUp={end}
+                onMouseLeave={() => press.current && !press.current.active && end()}
+                onContextMenu={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  if (blockClick.current) {
+                    e.preventDefault();
+                    blockClick.current = false;
+                  }
+                }}
+                draggable={false}
+              >
                 <div>
                   <div className="chart-tile-brand">{s.brand}</div>
                   <div className="chart-banner-name">{s.label}</div>

@@ -224,7 +224,7 @@ export function InstallGuide() {
       </ol>
       <p className="guide-foot">
         {tab === "ios"
-          ? "아이폰은 Safari에서 추가하는 것을 권장해요. 크롬에서도 공유 버튼으로 같은 순서로 추가할 수 있어요."
+          ? "iOS 18 이하에서는 Safari 아래쪽 도구 막대에 공유 버튼(네모에 위쪽 화살표)이 바로 있어요. 그 버튼을 누르고 3번부터 따라 하세요. 공유 화면에 홈 화면에 추가가 없으면 맨 아래 작업 편집(Edit Actions)에서 켜세요. 휴대폰이 영어로 설정돼 있으면 괄호 안의 영어 이름을 찾으면 돼요."
           : "삼성 인터넷은 아래쪽 메뉴(≡)에서 현재 페이지 추가 → 홈 화면을 누르세요."}
       </p>
     </div>
@@ -273,37 +273,69 @@ const PageLines = ({ y }: { y: number }) => (
   </g>
 );
 
+/** A menu row: Korean label on the left, the English label (for phones set to English) in grey on the right. */
+const MenuRow = ({ y, ko, en, x = 58, right = W - 58, bold }: { y: number; ko: string; en: string; x?: number; right?: number; bold?: boolean }) => (
+  <>
+    <T x={x} y={y} w={bold ? 600 : 400}>
+      {ko}
+    </T>
+    <T x={right} y={y} s={10.5} c="#8e8e93" a="end">
+      {en}
+    </T>
+  </>
+);
+
 const IOS_STEPS: Step[] = [
   {
     text: (
       <>
-        Safari 아래쪽의 <b>공유 버튼</b>(네모에 위쪽 화살표)을 누르세요. 버튼이 안 보이면 주소창 옆 <b>⋯</b>을 먼저 누르세요.
+        Safari 맨 아래 주소창 오른쪽의 <b>⋯</b>(점 세 개) 버튼을 누르세요.
       </>
     ),
     art: (
-      <Phone h={170}>
+      <Phone h={140}>
         <PageLines y={24} />
-        <rect x="14" y="88" width={W - 28} height="34" rx="17" fill="#2c2c2e" />
-        <T x={W / 2} y={110} a="middle" c="#d1d1d6">
+        <circle cx="38" cy="108" r="20" fill="#2c2c2e" />
+        <path d="M42 100l-8 8 8 8" fill="none" stroke="#f2f2f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="64" y="88" width={W - 128} height="40" rx="20" fill="#2c2c2e" />
+        <T x={W / 2} y={113} a="middle" c="#d1d1d6">
           owl.aovob7.duckdns.org
         </T>
-        <g stroke="#0a84ff" strokeWidth="2" fill="none" strokeLinecap="round">
-          <path d="M40 140l-7 7 7 7" />
-          <path d="M92 140l7 7-7 7" opacity="0.4" />
-          <rect x="196" y="139" width="16" height="16" rx="3" />
-          <rect x="244" y="139" width="16" height="16" rx="3" />
-          <rect x="248" y="135" width="16" height="16" rx="3" />
+        <circle cx={W - 38} cy="108" r="20" fill="#2c2c2e" />
+        <g fill="#f2f2f7">
+          <circle cx={W - 46} cy="108" r="2.4" />
+          <circle cx={W - 38} cy="108" r="2.4" />
+          <circle cx={W - 30} cy="108" r="2.4" />
         </g>
-        <ShareGlyph x={150} y={147} />
-        <Ring x={128} y={127} w={44} h={40} />
-        <Tap x={160} y={158} />
+        <Ring x={W - 62} y={84} w={48} h={48} r={24} />
+        <Tap x={W - 30} y={122} />
       </Phone>
     ),
   },
   {
     text: (
       <>
-        아래로 내려서 <b>홈 화면에 추가</b>를 누르세요.
+        열린 메뉴에서 <b>공유</b>(Share)를 누르세요.
+      </>
+    ),
+    art: (
+      <Phone h={196}>
+        <rect x="16" y="12" width={W - 32} height="172" rx="22" fill="#2c2c2e" />
+        <MenuRow y={42} ko="웹사이트 번역" en="Translate Website" x={64} right={W - 34} />
+        <line x1="34" y1="58" x2={W - 34} y2="58" stroke="#3a3a3c" />
+        <ShareGlyph x={44} y={80} c="#f2f2f7" />
+        <MenuRow y={86} ko="공유" en="Share" x={64} right={W - 34} bold />
+        <MenuRow y={122} ko="책갈피에 추가" en="Add to Bookmarks" x={64} right={W - 34} />
+        <MenuRow y={158} ko="페이지에서 찾기" en="Find on Page" x={64} right={W - 34} />
+        <Ring x={22} y={62} w={W - 44} h={38} />
+        <Tap x={140} y={88} />
+      </Phone>
+    ),
+  },
+  {
+    text: (
+      <>
+        공유 화면을 위로 끌어올리거나 아래로 내려서 <b>홈 화면에 추가</b>(Add to Home Screen)를 누르세요.
       </>
     ),
     art: (
@@ -317,23 +349,21 @@ const IOS_STEPS: Step[] = [
           owl.aovob7.duckdns.org
         </T>
         <rect x="14" y="68" width={W - 28} height="128" rx="12" fill="#2c2c2e" />
-        <T x={28} y={95}>복사</T>
+        <MenuRow y={95} ko="복사" en="Copy" x={28} />
         <line x1="28" y1="110" x2={W - 14} y2="110" stroke="#3a3a3c" />
-        <T x={28} y={137}>읽기 목록에 추가</T>
+        <MenuRow y={137} ko="읽기 목록에 추가" en="Add to Reading List" x={28} />
         <line x1="28" y1="152" x2={W - 14} y2="152" stroke="#3a3a3c" />
-        <T x={28} y={179} w={600}>
-          홈 화면에 추가
-        </T>
-        <PlusBox x={W - 40} y={174} />
+        <MenuRow y={179} ko="홈 화면에 추가" en="Add to Home Screen" x={28} right={W - 62} bold />
+        <PlusBox x={W - 38} y={174} />
         <Ring x={16} y={155} w={W - 32} h={38} />
-        <Tap x={W - 70} y={178} />
+        <Tap x={W - 38} y={186} />
       </Phone>
     ),
   },
   {
     text: (
       <>
-        이름이 <b>OwL</b>인지 확인하고 오른쪽 위의 <b>추가</b>를 누르세요.
+        오른쪽 위의 <b>추가</b>(Add)를 누르세요.
       </>
     ),
     art: (

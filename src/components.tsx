@@ -102,7 +102,8 @@ export function Page({ title, back, right, children, large = true }: {
   }, []);
   return (
     <div className="page">
-      <header className={`topbar ${scrolled || !large ? "solid" : ""}`}>
+      {/* Large-title screens: the bar scrolls away with the page. Detail pages: it stays, with a title. */}
+      <header className={`topbar ${large ? "static" : "solid"} ${scrolled && !large ? "scrolled" : ""}`}>
         <div className="topbar-side">
           {back && (
             <button className="icon-btn accent" onClick={() => nav(-1)} aria-label="뒤로">

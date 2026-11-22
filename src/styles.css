@@ -245,6 +245,32 @@ a.pill { text-decoration: none; }
 .np-controls { display: flex; justify-content: space-evenly; align-items: center; margin: 14px 0 10px; color: #fff; }
 .np-bottom { display: flex; justify-content: space-around; color: rgba(255,255,255,.7); }
 
+/* ---------- lyrics (Apple Music style) ---------- */
+.np-lyrics { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.np-mini-head { display: flex; align-items: center; gap: 12px; padding: 4px 0 10px; }
+.np-mini-head .cover { width: 52px; height: 52px; }
+.np-mini-title { font-weight: 700; font-size: 16px; }
+.np-mini-artist { color: rgba(255,255,255,.62); font-size: 14px; }
+.lyrics {
+  flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none;
+  mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 85%, transparent 100%);
+}
+.lyrics::-webkit-scrollbar { display: none; }
+.lyrics-pad { height: 30%; }
+.lyric {
+  display: block; width: 100%; text-align: left; padding: 9px 0;
+  font-size: 27px; line-height: 1.28; font-weight: 800; letter-spacing: -0.01em;
+  color: rgba(255,255,255,.32); transition: color .35s ease, transform .35s ease, filter .35s ease;
+  transform-origin: left center; filter: blur(.4px);
+}
+.lyrics.synced .lyric.on { color: #fff; transform: scale(1.02); filter: none; }
+.lyrics.synced .lyric.past { color: rgba(255,255,255,.42); }
+.lyrics.plain .lyric { color: rgba(255,255,255,.88); font-size: 22px; filter: none; }
+.lyric:disabled { cursor: default; }
+.lyrics-empty { flex: 1; display: grid; place-items: center; color: rgba(255,255,255,.6); font-size: 17px; }
+.lyrics-credit { color: rgba(255,255,255,.35); font-size: 12px; margin: 0 0 12px; }
+
 /* ---------- misc ---------- */
 .loading { display: flex; justify-content: center; gap: 6px; padding: 48px 0; }
 .loading span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: bounce 1s infinite ease-in-out; }

@@ -115,6 +115,12 @@ export const IconMusic = (p: P) => (
     <circle cx="17" cy="16" r="3" />
   </Svg>
 );
+export const IconLyrics = (p: P) => (
+  <Svg {...p}>
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z" />
+    <path d="M9 8.5h.01M9 11.5h0M9.5 8c-.8 0-1.2.6-1.2 1.3s.5 1.2 1.1 1.2c-.1.9-.6 1.4-1.2 1.6M14 8c-.8 0-1.2.6-1.2 1.3s.5 1.2 1.1 1.2c-.1.9-.6 1.4-1.2 1.6" />
+  </Svg>
+);
 export const IconPlus = (p: P) => (
   <Svg {...p}>
     <path d="M12 5v14M5 12h14" />

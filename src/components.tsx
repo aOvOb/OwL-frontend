@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { api, coverUrl, formatTime, songToItem, ytToItem, ytToSong, type Song, type YtSong } from "./api";
+import { LyricsView } from "./lyrics";
 import { useSheets, type Action } from "./sheets";
 import {
   IconBack,
@@ -11,6 +12,7 @@ import {
   IconHome,
   IconLibrary,
   IconList,
+  IconLyrics,
   IconMore,
   IconMusic,
   IconNext,
@@ -346,7 +348,7 @@ export function MiniPlayer({ onOpen }: { onOpen: () => void }) {
 
 export function NowPlaying({ open, onClose }: { open: boolean; onClose: () => void }) {
   const p = usePlayer();
-  const [showQueue, setShowQueue] = useState(false);
+  const [view, setView] = useState<"art" | "lyrics" | "queue">("art");
   const [drag, setDrag] = useState<number | null>(null);
   const startY = useRef<number | null>(null);
   const [pull, setPull] = useState(0);
@@ -360,7 +362,7 @@ export function NowPlaying({ open, onClose }: { open: boolean; onClose: () => vo
       style={pull ? { transform: `translateY(${pull}px)`, transition: "none" } : undefined}
       onTouchStart={(e) => (startY.current = e.touches[0].clientY)}
       onTouchMove={(e) => {
-        if (startY.current == null || showQueue) return;
+        if (startY.current == null || view !== "art") return; // lyrics and queue scroll instead
         const dy = e.touches[0].clientY - startY.current;
         if (dy > 0) setPull(dy);
       }}
@@ -376,7 +378,18 @@ export function NowPlaying({ open, onClose }: { open: boolean; onClose: () => vo
         <button className="np-handle" onClick={onClose} aria-label="닫기">
           <IconDown size={30} />
         </button>
-        {showQueue ? (
+        {view === "lyrics" && cur ? (
+          <div className="np-lyrics">
+            <div className="np-mini-head">
+              <Cover id={cur.coverArt ?? cur.id} size={120} rounded="sm" />
+              <div>
+                <div className="np-mini-title">{cur.title}</div>
+                <div className="np-mini-artist">{cur.artist}</div>
+              </div>
+            </div>
+            <LyricsView songId={cur.id} />
+          </div>
+        ) : view === "queue" ? (
           <div className="np-queue">
             <h3>다음 재생</h3>
             <div className="np-queue-list">
@@ -398,10 +411,12 @@ export function NowPlaying({ open, onClose }: { open: boolean; onClose: () => vo
             <Cover id={cur?.coverArt ?? cur?.id} size={900} rounded="lg" />
           </div>
         )}
-        <div className="np-info">
-          <div className="np-title">{cur?.title ?? "재생 중인 곡 없음"}</div>
-          <div className="np-artist">{cur?.artist}</div>
-        </div>
+        {view !== "lyrics" && (
+          <div className="np-info">
+            <div className="np-title">{cur?.title ?? "재생 중인 곡 없음"}</div>
+            <div className="np-artist">{cur?.artist}</div>
+          </div>
+        )}
         <div className="np-seek">
           <input
             type="range"
@@ -445,7 +460,10 @@ export function NowPlaying({ open, onClose }: { open: boolean; onClose: () => vo
             <IconRepeat size={22} />
             {p.repeat === "one" && <span className="badge-one">1</span>}
           </button>
-          <button className={`icon-btn ${showQueue ? "on" : ""}`} onClick={() => setShowQueue((v) => !v)} aria-label="대기열">
+          <button className={`icon-btn ${view === "lyrics" ? "on" : ""}`} onClick={() => setView((v) => (v === "lyrics" ? "art" : "lyrics"))} aria-label="가사">
+            <IconLyrics size={22} />
+          </button>
+          <button className={`icon-btn ${view === "queue" ? "on" : ""}`} onClick={() => setView((v) => (v === "queue" ? "art" : "queue"))} aria-label="대기열">
             <IconList size={22} />
           </button>
         </div>

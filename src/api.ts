@@ -57,6 +57,9 @@ export type YtSong = {
   ytArtist?: string | null;
 };
 
+/** Lyrics saved with the song. Synced lines have a start time in seconds. */
+export type Lyrics = { synced: boolean; lines: { t: number | null; text: string }[] };
+
 /** Per-account settings. */
 export type Prefs = { chartOrder: string[] };
 
@@ -151,6 +154,7 @@ export const api = {
     request<{ queued: number }>("/yt/download/bulk", { method: "POST", body: JSON.stringify({ videoIds }) }),
   jobs: () => request<{ jobs: Job[] }>("/yt/jobs"),
 
+  lyrics: (songId: string) => request<Lyrics>(`/lyrics/${enc(songId)}`),
   prefs: () => request<Prefs>("/my/prefs"),
   savePrefs: (p: Prefs) => request<Prefs>("/my/prefs", { method: "PUT", body: JSON.stringify(p) }),
 

@@ -4,7 +4,17 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import "./styles.css";
 
-registerSW({ immediate: true });
+// Home-screen apps on iOS stay suspended instead of reloading, so look for a new version whenever the
+// app comes back to the screen and once an hour; autoUpdate then reloads into it.
+registerSW({
+  immediate: true,
+  onRegisteredSW(_url, registration) {
+    if (!registration) return;
+    const check = () => registration.update().catch(() => {});
+    document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && check());
+    setInterval(check, 60 * 60 * 1000);
+  },
+});
 
 // No pinch or double-tap zoom: it is an app, not a page. iOS ignores user-scalable=no in Safari,
 // so its gesture events are cancelled too.

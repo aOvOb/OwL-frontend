@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write # push the release tag and create the GitHub Release after a successful deploy
 
 concurrency:
   group: deploy-frontend
@@ -47,3 +47,22 @@ jobs:
       - name: Remove key
         if: always()
         run: rm -f ~/.ssh/deploy_key
+
+      # After a successful deploy: tag vX.Y.Z (version from package.json) and publish a GitHub Release
+      # with that version's CHANGELOG section. Skipped when the tag already exists (no version bump).
+      - name: Tag release
+        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="v$(node -p "require('./package.json').version")"
+          if git ls-remote --exit-code --tags origin "refs/tags/$V" >/dev/null; then
+            echo "$V already tagged, nothing to release"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$V" -m "OwL frontend $V"
+          git push origin "$V"
+          awk -v h="## ${V#v} " 'index($0, h) == 1 {f = 1; next} /^## / && f {exit} f' CHANGELOG.md > notes.md
+          gh release create "$V" --title "OwL frontend $V" --notes-file notes.md --verify-tag

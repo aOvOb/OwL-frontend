@@ -276,6 +276,11 @@ a.pill { text-decoration: none; }
 .lyrics-empty { flex: 1; display: grid; place-items: center; color: rgba(255,255,255,.6); font-size: 17px; }
 .lyrics-credit { color: rgba(255,255,255,.35); font-size: 12px; margin: 0 0 12px; }
 
+/* ---------- long lists: let the browser skip off-screen rows and cards ---------- */
+.list > .row { content-visibility: auto; contain-intrinsic-size: auto 62px; }
+.grid > .card { content-visibility: auto; contain-intrinsic-size: auto 220px; }
+.windowed-sentinel { height: 1px; }
+
 /* ---------- misc ---------- */
 .loading { display: flex; justify-content: center; gap: 6px; padding: 48px 0; }
 .loading span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: bounce 1s infinite ease-in-out; }

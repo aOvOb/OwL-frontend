@@ -4,6 +4,7 @@ import { api, formatBasis, ytToItem, ytToSong, type Chart, type Song, type YtSon
 import { ErrorBox, Loading, Page, PlayButtons, toast, useLoad, YtRow } from "../components";
 import { IconDownload, IconPlus } from "../icons";
 import { useSheets } from "../sheets";
+import { Windowed } from "../windowed";
 
 export const CHART_STYLE = [
   { key: "melon", prefix: "멜론", brand: "Melon", label: "TOP 100", bg: "linear-gradient(140deg,#1f9b48,#0b4a24)", shade: "linear-gradient(180deg,rgba(11,74,36,0) 20%,rgba(11,74,36,.92) 78%)" },
@@ -277,9 +278,9 @@ export function ChartPage() {
             )}
           </div>
           <div className="list">
-            {chart.entries.map((e) => (
-              <YtRow key={`${e.rank}-${e.videoId}`} item={e} playable={playable} />
-            ))}
+            <Windowed items={chart.entries} keyOf={(e) => `${e.rank}-${e.videoId}`} step={40}>
+              {(e) => <YtRow item={e} playable={playable} />}
+            </Windowed>
           </div>
         </>
       )}

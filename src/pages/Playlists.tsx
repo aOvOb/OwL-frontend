@@ -4,6 +4,7 @@ import { api, itemToSong, prepareCover, songToItem, ytToItem, type ItemInput, ty
 import { Cover, ErrorBox, Loading, Page, PlayButtons, useLoad, YtRow } from "../components";
 import { IconCheck, IconChevron, IconDownload, IconMore, IconPlus, IconSearch } from "../icons";
 import { PlaylistThumb, useSheets } from "../sheets";
+import { Windowed } from "../windowed";
 
 /** Reloads when any screen adds to or changes a playlist. */
 function usePlaylistsChanged(reload: () => void) {
@@ -291,23 +292,24 @@ export function MyPlaylistPage() {
           </div>
           {data.items.length === 0 && <p className="empty">아직 노래가 없어요. 노래 추가를 눌러 찾아 보세요</p>}
           <div className="list">
-            {data.items.map((it) => (
-              <YtRow
-                key={`${it.index}-${it.videoId ?? it.songId}`}
-                item={{ ...it, videoId: it.videoId ?? null, title: it.title, artist: it.artist }}
-                playable={playable}
-                extraActions={[
-                  {
-                    label: "이 재생목록에서 삭제",
-                    danger: true,
-                    run: async () => {
-                      await api.removeFromPlaylist(data.id, it.index);
-                      changed();
+            <Windowed items={data.items} keyOf={(it) => `${it.index}-${it.videoId ?? it.songId}`}>
+              {(it) => (
+                <YtRow
+                  item={{ ...it, videoId: it.videoId ?? null, title: it.title, artist: it.artist }}
+                  playable={playable}
+                  extraActions={[
+                    {
+                      label: "이 재생목록에서 삭제",
+                      danger: true,
+                      run: async () => {
+                        await api.removeFromPlaylist(data.id, it.index);
+                        changed();
+                      },
                     },
-                  },
-                ]}
-              />
-            ))}
+                  ]}
+                />
+              )}
+            </Windowed>
             <Link to={`/my/${data.id}/add`} className="row add-row">
               <span className="add-row-icon">
                 <IconPlus size={24} />

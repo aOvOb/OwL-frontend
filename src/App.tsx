@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Component, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router";
 import { api } from "./api";
 import { Loading, MiniPlayer, NowPlaying, TabBar, Toaster } from "./components";
@@ -11,8 +11,38 @@ import { PlayerProvider } from "./player";
 
 function ScrollTop() {
   const { pathname } = useLocation();
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  // Braces matter: newer Chrome returns a Promise from scrollTo, and React would call it as a cleanup.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
   return null;
+}
+
+/** Keeps one broken screen from blanking the whole app; tapping a tab recovers. */
+class ErrorBoundary extends Component<{ children: React.ReactNode; resetKey: string }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidUpdate(prev: { resetKey: string }) {
+    if (prev.resetKey !== this.props.resetKey && this.state.failed) this.setState({ failed: false });
+  }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div className="error-box" style={{ marginTop: 80 }}>
+        <p>화면을 표시하지 못했어요</p>
+        <button className="pill" onClick={() => location.reload()}>
+          새로고침
+        </button>
+      </div>
+    );
+  }
+}
+
+function Routed({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  return <ErrorBoundary resetKey={pathname}>{children}</ErrorBoundary>;
 }
 
 function Shell({ onLogout }: { onLogout: () => void }) {
@@ -24,6 +54,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
     <>
       <ScrollTop />
       <main className="content">
+        <Routed>
         <Routes>
           <Route path="/" element={<Home onLogout={onLogout} />} />
           <Route path="/charts" element={<ChartsIndex />} />
@@ -35,6 +66,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           <Route path="/artist/:id" element={<ArtistPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Routed>
       </main>
       <div className="dock">
         <MiniPlayer onOpen={() => setNpOpen(true)} />

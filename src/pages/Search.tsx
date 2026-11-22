@@ -16,7 +16,9 @@ export default function Search() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => setText(q), [q]);
+  useEffect(() => {
+    setText(q);
+  }, [q]);
 
   useEffect(() => {
     if (!q) {

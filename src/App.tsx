@@ -2,7 +2,7 @@ import { Component, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router";
 import { api } from "./api";
 import { Loading, MiniPlayer, NowPlaying, TabBar, Toaster, toast } from "./components";
-import { MyPlaylistPage } from "./pages/Playlists";
+import { AddSongsPage, MyPlaylistPage } from "./pages/Playlists";
 import { SheetProvider } from "./sheets";
 import { ChartPage, ChartsIndex } from "./pages/Charts";
 import Home from "./pages/Home";
@@ -67,6 +67,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           <Route path="/album/:id" element={<AlbumPage />} />
           <Route path="/artist/:id" element={<ArtistPage />} />
           <Route path="/my/:id" element={<MyPlaylistPage />} />
+          <Route path="/my/:id/add" element={<AddSongsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Routed>

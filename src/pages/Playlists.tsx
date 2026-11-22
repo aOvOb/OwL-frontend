@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { api, itemToSong, prepareCover, type PlaylistSummary, type Song } from "../api";
-import { ErrorBox, Loading, Page, PlayButtons, useLoad, YtRow } from "../components";
-import { IconChevron, IconDownload, IconMore } from "../icons";
+import { api, itemToSong, prepareCover, songToItem, ytToItem, type ItemInput, type PlaylistSummary, type Song } from "../api";
+import { Cover, ErrorBox, Loading, Page, PlayButtons, useLoad, YtRow } from "../components";
+import { IconCheck, IconChevron, IconDownload, IconMore, IconPlus, IconSearch } from "../icons";
 import { PlaylistThumb, useSheets } from "../sheets";
 
 /** Reloads when any screen adds to or changes a playlist. */
@@ -75,6 +75,103 @@ export function MyPlaylistsShelf() {
   );
 }
 
+/** Search YouTube Music or the library and add songs straight into one playlist. */
+export function AddSongsPage() {
+  const { id = "" } = useParams();
+  const sheets = useSheets();
+  const [text, setText] = useState("");
+  const [scope, setScope] = useState<"yt" | "lib">("yt");
+  const [results, setResults] = useState<ItemInput[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [added, setAdded] = useState<Set<string>>(new Set());
+  const { data: pl } = useLoad(() => api.myPlaylist(id), [id]);
+
+  const keyOf = (i: ItemInput) => i.videoId ?? i.songId ?? `${i.title}|${i.artist}`;
+  const already = useMemo(() => new Set((pl?.items ?? []).map(keyOf)), [pl]);
+
+  const search = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const q = text.trim();
+    if (!q) return;
+    (document.activeElement as HTMLElement | null)?.blur();
+    setLoading(true);
+    try {
+      if (scope === "yt") setResults((await api.ytSearch(q)).map(ytToItem));
+      else setResults((await api.search(q)).song.map(songToItem));
+    } catch (err) {
+      sheets.toast((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (text.trim()) search();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope]);
+
+  const add = async (item: ItemInput) => {
+    const k = keyOf(item);
+    setAdded((s) => new Set(s).add(k));
+    try {
+      await api.addToPlaylist(id, [item]);
+      sheets.toast(item.songId ? "추가했어요" : "추가했어요. 받는 대로 재생돼요");
+      window.dispatchEvent(new Event("owl:playlists-changed"));
+    } catch (err) {
+      setAdded((s) => {
+        const n = new Set(s);
+        n.delete(k);
+        return n;
+      });
+      sheets.toast((err as Error).message);
+    }
+  };
+
+  return (
+    <Page title={pl ? `${pl.name}에 추가` : "노래 추가"} back large={false}>
+      <form className="searchbar top" onSubmit={search}>
+        <IconSearch size={18} />
+        <input autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="노래, 가수" enterKeyHint="search" type="search" />
+      </form>
+      <div className="segmented">
+        <button className={scope === "yt" ? "on" : ""} onClick={() => setScope("yt")}>
+          유튜브 뮤직
+        </button>
+        <button className={scope === "lib" ? "on" : ""} onClick={() => setScope("lib")}>
+          보관함
+        </button>
+      </div>
+      {loading && <Loading />}
+      {!loading && results && results.length === 0 && <p className="empty">검색 결과가 없어요</p>}
+      {!loading && results && (
+        <div className="list">
+          {results.map((r) => {
+            const k = keyOf(r);
+            const done = added.has(k) || already.has(k);
+            return (
+              <div key={k} className="row static">
+                <div className="row-cover">
+                  <Cover id={r.songId ?? null} src={r.songId ? undefined : r.thumbnail} size={120} rounded="sm" />
+                </div>
+                <div className="row-text">
+                  <div className="row-title">{r.title}</div>
+                  <div className="row-sub">
+                    {r.artist}
+                    {!r.songId && " · 받아서 추가"}
+                  </div>
+                </div>
+                <button className={`icon-btn ${done ? "" : "accent"}`} disabled={done} onClick={() => add(r)} aria-label={done ? "추가됨" : "추가"}>
+                  {done ? <IconCheck size={22} /> : <IconPlus size={24} />}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Page>
+  );
+}
+
 export function MyPlaylistPage() {
   const { id = "" } = useParams();
   const nav = useNavigate();
@@ -118,6 +215,7 @@ export function MyPlaylistPage() {
   const menu = () => {
     if (!data) return;
     sheets.actions(data.name, `${data.items.length}곡`, [
+      { label: "노래 추가", run: () => nav(`/my/${data.id}/add`) },
       { label: "사진 변경", run: () => fileInput.current?.click() },
       ...(data.cover ? [{ label: "사진 제거", run: async () => (await api.removePlaylistCover(data.id), changed()) }] : []),
       {
@@ -182,13 +280,16 @@ export function MyPlaylistPage() {
               {data.items.length}곡 · 재생 가능 {playable.length}곡
             </p>
             <PlayButtons songs={playable} />
+            <Link to={`/my/${data.id}/add`} className="pill big ghost wide">
+              <IconPlus size={18} /> 노래 추가
+            </Link>
             {missing.length > 0 && (
               <button className="pill big ghost wide" onClick={downloadMissing}>
                 <IconDownload size={18} /> 안 받은 {missing.length}곡 받기
               </button>
             )}
           </div>
-          {data.items.length === 0 && <p className="empty">아직 노래가 없어요. 차트나 검색에서 ⋯ → 재생목록에 추가</p>}
+          {data.items.length === 0 && <p className="empty">아직 노래가 없어요. 노래 추가를 눌러 찾아 보세요</p>}
           <div className="list">
             {data.items.map((it) => (
               <YtRow
@@ -207,6 +308,14 @@ export function MyPlaylistPage() {
                 ]}
               />
             ))}
+            <Link to={`/my/${data.id}/add`} className="row add-row">
+              <span className="add-row-icon">
+                <IconPlus size={24} />
+              </span>
+              <div className="row-text">
+                <div className="row-title accent-text">노래 추가</div>
+              </div>
+            </Link>
           </div>
         </>
       )}

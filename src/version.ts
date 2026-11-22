@@ -1,4 +1,8 @@
 declare const __BUILD_ID__: string;
+declare const __APP_VERSION__: string;
+
+/** Semantic version of the app (package.json), e.g. 0.7.0. */
+export const APP_VERSION: string = __APP_VERSION__;
 
 /** The build this app was made from (commit id in production). */
 export const BUILD_ID: string = __BUILD_ID__;

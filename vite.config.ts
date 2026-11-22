@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import pkg from "./package.json";
 
 declare const process: { env: Record<string, string | undefined> }; // Node global (no @types/node needed)
 
@@ -9,13 +10,13 @@ declare const process: { env: Record<string, string | undefined> }; // Node glob
 const BUILD_ID = (process.env.GITHUB_SHA ?? "").slice(0, 7) || `dev-${Date.now()}`;
 
 export default defineConfig({
-  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID), __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),
     {
       name: "owl-version-file",
       generateBundle() {
-        this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify({ build: BUILD_ID }) });
+        this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify({ version: pkg.version, build: BUILD_ID }) });
       },
     },
     VitePWA({

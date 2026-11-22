@@ -5,7 +5,7 @@ import { Cover, ErrorBox, Loading, Page, PlayButtons, SongRow, useLoad } from ".
 import { IconCheck, IconChevron, IconPlus, IconSort } from "../icons";
 import { useSheets } from "../sheets";
 import { SORT_LABEL, sortActions, sortItems, useSort, type Sort, type SortKey } from "../sort";
-import { BUILD_ID } from "../version";
+import { APP_VERSION, BUILD_ID } from "../version";
 import { Windowed } from "../windowed";
 import { Downloads } from "./Downloads";
 import { MyPlaylistsList } from "./Playlists";
@@ -33,7 +33,9 @@ export function Library() {
       {tab === "albums" && <Albums />}
       {tab === "artists" && <Artists />}
       {tab === "downloads" && <Downloads />}
-      <p className="version">OwL 버전 {BUILD_ID}</p>
+      <p className="version">
+        OwL {APP_VERSION} ({BUILD_ID})
+      </p>
     </Page>
   );
 }

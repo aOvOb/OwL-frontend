@@ -6,7 +6,9 @@
     <meta name="theme-color" content="#0c0809" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- "black", not "black-translucent": the page starts below the status bar, so iOS's scroll-edge
+         blur over the status bar area no longer smears the app's top bar. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="OwL" />
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/png" href="/icons/favicon-64.png" />

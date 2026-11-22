@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
+declare const process: { env: Record<string, string | undefined> }; // Node global (no @types/node needed)
+
 // Build id: the commit in CI, a timestamp locally. Shipped as /version.json so an old cached app can
 // tell that a newer version is on the server.
 const BUILD_ID = (process.env.GITHUB_SHA ?? "").slice(0, 7) || `dev-${Date.now()}`;

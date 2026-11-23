@@ -117,9 +117,10 @@ img { display: block; }
 .play-btn { height: 52px; flex: 0 1 200px; border-radius: 26px; background: #fff; color: #111; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .round-btn:active, .play-btn:active { transform: scale(.97); }
 .round-btn:disabled, .play-btn:disabled { opacity: .45; }
-.cover-desc { margin: 18px 20px 0; font-size: 15px; line-height: 1.45; color: rgba(255,255,255,.62); }
-.cover-desc b { color: #fff; font-weight: 600; }
-.cover-more { display: flex; margin: 12px 20px 10px; width: calc(100% - 40px); }
+/* "N곡 준비됨": centred, small, with room above and below (not glued to the buttons or the list). */
+.cover-desc { margin: 24px 32px 22px; font-size: 13px; line-height: 1.5; text-align: center; color: rgba(255,255,255,.62); word-break: keep-all; text-wrap: balance; }
+.cover-desc b { display: block; margin-bottom: 2px; font-size: 14px; color: #fff; font-weight: 600; }
+.cover-more { display: flex; margin: 0 20px 18px; width: calc(100% - 40px); }
 /* body paints its own background above negative z-index layers; let the glow show through. */
 body:has(.page-glow) { background: transparent; }
 /* Fine grain so the large colour areas do not look flat or banded. */

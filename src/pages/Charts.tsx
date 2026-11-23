@@ -277,7 +277,7 @@ export function ChartPage() {
               <IconPlus size={22} />
             </button>
           </div>
-          <p className="cover-desc"><b>{readyText(playable.length, chart.entries.length)}.</b> 서버에 없는 곡은 흐리게 보이고, 받으면 바로 들을 수 있어요.</p>
+          <p className="cover-desc"><b>{readyText(playable.length, chart.entries.length)}</b> 서버에 없는 곡은 흐리게 보이고, 받으면 바로 들을 수 있어요.</p>
           {missing.length > 0 && (
             <button className="pill big ghost cover-more" onClick={downloadAll} disabled={busy}>
               <IconDownload size={18} /> 나머지 {missing.length}곡 받기

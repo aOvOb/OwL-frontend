@@ -6,7 +6,6 @@ import { removeSongs, saveItems, saveSongs, useOffline, useOnline, type OfflineV
 import { useSheets, type Action } from "./sheets";
 import {
   IconBack,
-  IconCheck,
   IconChart,
   IconDown,
   IconDownload,
@@ -321,6 +320,7 @@ export async function saveToDevice(items: ItemInput[]) {
     const { now, later } = await saveItems(items);
     if (!now && !later) toast("이미 기기에 저장돼 있어요");
     else if (!later) toast(`${now}곡을 기기에 저장하는 중이에요`);
+    else if (!now) toast(later === 1 ? "서버에 받은 뒤 기기에 저장돼요" : `${later}곡은 서버에 받은 뒤 기기에 저장돼요`);
     else toast(`${now}곡 저장 시작, ${later}곡은 서버에 받은 뒤 저장돼요`);
   } catch (e) {
     toast((e as Error).message);
@@ -346,6 +346,21 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
   const active = !!song && p.current?.id === song.id;
   const unplayable = !song || (!online && !off.has(song.id));
   const downloading = !song && (item.downloading || requested);
+  const waitingForServer = !!item.videoId && off.pending.some((x) => x.videoId === item.videoId);
+
+  const saveHere = async () => {
+    if (song) {
+      try {
+        await saveSongs([song]);
+      } catch (err) {
+        toast((err as Error).message);
+      }
+      return;
+    }
+    setRequested(true);
+    await saveToDevice([ytToItem(item)]);
+    if (item.videoId) onDownloaded?.(item.videoId);
+  };
 
   const play = () => {
     if (!song) return;
@@ -379,20 +394,19 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
       </div>
       <div className="row-text">
         <div className="row-title">{item.title}</div>
-        <div className="row-sub">
-          <SavedMark id={song?.id} />
-          {item.artist}
-        </div>
+        <div className="row-sub">{item.artist}</div>
       </div>
-      <div className="row-action">
-        {song ? (
-          <span className="have" aria-label="보관함에 있음">
-            <IconCheck size={18} />
+      <div className="row-action" onClick={(e) => e.stopPropagation()}>
+        {/* The arrow saves to this device. A song not on the server yet stays dim; its arrow downloads it
+            to the server first and saves it to the device once it arrives. */}
+        {song && off.has(song.id) ? (
+          <span className="have" aria-label="기기에 저장됨">
+            <IconSaved size={22} />
           </span>
-        ) : downloading ? (
-          <span className="spinner" aria-label="다운로드 중" />
-        ) : item.videoId ? (
-          <button className="icon-btn accent" onClick={download} aria-label="다운로드">
+        ) : (song && off.queued(song.id)) || (!song && (downloading || waitingForServer)) ? (
+          <span className="spinner" aria-label={song ? "기기에 저장 중" : "서버에서 받는 중"} />
+        ) : song || item.videoId ? (
+          <button className="icon-btn accent" onClick={saveHere} aria-label="기기에 저장">
             <IconDownload size={26} />
           </button>
         ) : null}

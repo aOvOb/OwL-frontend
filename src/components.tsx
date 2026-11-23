@@ -129,13 +129,15 @@ export function Page({ title, back, right, children, large = true, glass = false
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
+  // Detail pages without a large title float their buttons like the chart page (no solid bar).
+  const floating = glass || (back && !large);
   return (
     <div className={glass ? "page glass-page" : "page"} style={tint ? ({ "--glass-tint": tint } as React.CSSProperties) : undefined}>
-      {/* Large-title screens: the bar scrolls away with the page. Detail pages: it stays, with a title. */}
-      <header className={glass ? "topbar glass" : `topbar ${large ? "static" : "solid"} ${scrolled && !large ? "scrolled" : ""}`}>
+      {/* Large-title screens: the bar scrolls away with the page. Detail pages: floating glass buttons. */}
+      <header className={floating ? `topbar glass${glass ? "" : " plain"}` : `topbar ${large ? "static" : "solid"} ${scrolled && !large ? "scrolled" : ""}`}>
         <div className="topbar-side">
           {back && (
-            <button className={glass ? "icon-btn glass-btn" : "icon-btn accent"} onClick={() => nav(-1)} aria-label="뒤로">
+            <button className={floating ? "icon-btn glass-btn" : "icon-btn accent"} onClick={() => nav(-1)} aria-label="뒤로">
               <IconBack size={26} />
             </button>
           )}
@@ -144,7 +146,7 @@ export function Page({ title, back, right, children, large = true, glass = false
         <div className="topbar-title" />
         <div className="topbar-side right">{right}</div>
       </header>
-      {glass && <div className="topbar-space" aria-hidden />}
+      {floating && <div className="topbar-space" aria-hidden />}
       {large && !glass && title && <h1 className="large-title">{title}</h1>}
       {children}
     </div>

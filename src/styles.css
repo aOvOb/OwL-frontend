@@ -52,8 +52,10 @@ img { display: block; }
   background: var(--bg);
 }
 .topbar.static { position: relative; }
-/* Always-on cover for the status bar / Dynamic Island area, above scrolling content. */
-.status-cover { position: fixed; top: 0; left: 0; right: 0; height: var(--safe-top); background: var(--bg); z-index: 25; pointer-events: none; }
+/* Soft shade behind the clock and battery: content scrolls up under it and stays faintly visible,
+   while the status bar text stays readable (same look as the chart page). */
+.status-cover { position: fixed; top: 0; left: 0; right: 0; height: calc(var(--safe-top) + 24px); z-index: 25; pointer-events: none;
+  background: linear-gradient(180deg, rgba(12,8,9,.82), rgba(12,8,9,.55) var(--safe-top), transparent); }
 /* Solid, not a translucent blur: blur under the status bar / Dynamic Island looked hazy on iPhone. */
 .topbar.solid { background: var(--bg); }
 .topbar.solid.scrolled { box-shadow: 0 1px 0 var(--line); }
@@ -66,7 +68,9 @@ img { display: block; }
 .topbar.glass .topbar-side > * { pointer-events: auto; }
 /* The cover goes all the way up behind the clock and battery: no solid status bar cover on these pages.
    Once the list scrolls under it, the soft shade below keeps the status bar readable. */
-body:has(.glass-page) .status-cover { display: none; }
+body:has(.topbar.glass) .status-cover { display: none; }
+/* Detail pages without a cover: the shade is there from the start, content scrolls under the buttons. */
+.topbar.glass.plain::before { opacity: 1; animation: none; }
 .topbar.glass::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--safe-top) + 34px); pointer-events: none;
   background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35) var(--safe-top), transparent); opacity: 0; }
 .topbar-space { height: calc(54px + var(--safe-top)); }

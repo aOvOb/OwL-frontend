@@ -52,6 +52,23 @@ export function useLoad<T>(load: () => Promise<T>, deps: unknown[]) {
 let pushToast: (msg: string) => void = () => {};
 export const toast = (msg: string) => pushToast(msg);
 
+/**
+ * Busy indicator. The arc turns with SVG's own animation (SMIL), which is painted together with the
+ * row. A CSS-rotated element gets its own compositing layer on iPhone, and during fast scrolling in
+ * long lists that layer lagged behind or was drawn out of shape.
+ */
+export function Spinner({ tiny = false, label }: { tiny?: boolean; label?: string }) {
+  const s = tiny ? 12 : 20;
+  return (
+    <svg className={tiny ? "spinner tiny" : "spinner"} width={s} height={s} viewBox="0 0 20 20" role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+      <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity=".25" strokeWidth="2.5" />
+      <path d="M10 2a8 8 0 0 1 8 8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="0.8s" repeatCount="indefinite" />
+      </path>
+    </svg>
+  );
+}
+
 export function Toaster() {
   const [msg, setMsg] = useState<string | null>(null);
   const timer = useRef<number>(0);
@@ -258,7 +275,7 @@ export function DeviceArrow({ song }: { song: Song }) {
         <IconSaved size={22} />
       </span>
     );
-  if (off.queued(song.id)) return <span className="spinner" aria-label="기기에 저장 중" />;
+  if (off.queued(song.id)) return <Spinner label="기기에 저장 중" />;
   return (
     <button
       className="icon-btn accent"
@@ -317,7 +334,7 @@ export function DeviceSaveButton({ items, name }: { items: ItemInput[]; name: st
     <button className="pill big ghost wide" disabled={savingN > 0} onClick={() => saveToDevice(items)}>
       {savingN > 0 ? (
         <>
-          <span className="spinner tiny" /> 기기에 저장 중 ({savedN}/{items.length})
+          <Spinner tiny /> 기기에 저장 중 ({savedN}/{items.length})
         </>
       ) : (
         <>
@@ -406,7 +423,7 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
         {song ? (
           <DeviceArrow song={song} />
         ) : downloading || waitingForServer ? (
-          <span className="spinner" aria-label="서버에서 받는 중" />
+          <Spinner label="서버에서 받는 중" />
         ) : item.videoId ? (
           <button className="icon-btn accent" onClick={download} aria-label="서버에 추가">
             <IconAddCircle size={26} />

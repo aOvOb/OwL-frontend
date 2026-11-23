@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { type Song } from "../api";
-import { Cover, PlayButtons, SongRow, toast } from "../components";
+import { Cover, PlayButtons, SongRow, Spinner, toast } from "../components";
 import { cancelPending, formatBytes, removeAll, storageUse, useOffline } from "../offline";
 import { matches } from "../filter";
 import { useSheets } from "../sheets";
@@ -34,7 +34,7 @@ export function OfflineSongs({ q = "" }: { q?: string }) {
         </div>
         {off.saving.left > 0 && (
           <div className="offline-note">
-            <span className="spinner tiny" /> {off.saving.left}곡 저장 중이에요. 앱을 열어 둔 동안 저장돼요
+            <Spinner tiny /> {off.saving.left}곡 저장 중이에요. 앱을 열어 둔 동안 저장돼요
           </div>
         )}
         {off.saving.failed > 0 && off.saving.left === 0 && <div className="offline-note warn">{off.saving.failed}곡은 저장하지 못했어요. 다시 저장해 보세요</div>}

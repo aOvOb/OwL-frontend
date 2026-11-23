@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, type QueuedSong } from "../api";
-import { ErrorBox, Loading, useLoad } from "../components";
+import { ErrorBox, Loading, Spinner, useLoad } from "../components";
 import { matches } from "../filter";
 import { useSheets } from "../sheets";
 import { Windowed } from "../windowed";
@@ -103,7 +103,7 @@ export function Downloads({ q = "" }: { q?: string }) {
                         : `${s.reasonText ?? ""}, ${s.attempts}번 시도`}
                 </div>
               </div>
-              {s.status === "sent" && <span className="spinner" />}
+              {s.status === "sent" && <Spinner />}
             </div>
           )}
         </Windowed>

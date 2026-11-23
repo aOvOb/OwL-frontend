@@ -8,7 +8,7 @@ import { SORT_LABEL, sortActions, sortItems, useSort, type Sort, type SortKey } 
 import { APP_VERSION, BUILD_ID } from "../version";
 import { Windowed } from "../windowed";
 import { Downloads } from "./Downloads";
-import { FilterBar, matches } from "../filter";
+import { FilterBar, matches, refreshAliases } from "../filter";
 import { OfflineSongs } from "./Offline";
 import { MyPlaylistsList } from "./Playlists";
 
@@ -19,6 +19,11 @@ export function Library() {
   const [params, setParams] = useSearchParams();
   const tab = (params.get("tab") as Tab) || "playlists";
   const [q, setQ] = useState("");
+  // Learn other names of artists (샤이니 = SHINee) for the search box; re-filter once they arrive.
+  const [, aliasesLoaded] = useState(0);
+  useEffect(() => {
+    refreshAliases().then((more) => more && aliasesLoaded((x) => x + 1));
+  }, []);
   const setTab = (t: Tab) => {
     setQ("");
     setParams(t === "playlists" ? {} : { tab: t }, { replace: true });

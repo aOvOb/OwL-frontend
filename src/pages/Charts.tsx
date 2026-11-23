@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import { api, formatBasis, ytToItem, ytToSong, type Chart, type Song, type YtSong } from "../api";
-import { ErrorBox, Loading, Page, PlayButtons, toast, useLoad, YtRow } from "../components";
-import { IconDownload, IconPlus } from "../icons";
+import { ErrorBox, Loading, Page, toast, useLoad, YtRow } from "../components";
+import { IconDownload, IconPlay, IconPlus, IconShuffle } from "../icons";
+import { usePlayer } from "../player";
 import { useSheets } from "../sheets";
 import { Windowed } from "../windowed";
-import { gradientColors, PageGlow, useHeroFade } from "../glass";
+import { CoverMosaic, gradientColors, PageGlow } from "../glass";
 
 export const CHART_STYLE = [
   { key: "melon", prefix: "멜론", brand: "Melon", label: "TOP 100", bg: "linear-gradient(140deg,#1f9b48,#0b4a24)", shade: "linear-gradient(180deg,rgba(11,74,36,0) 20%,rgba(11,74,36,.92) 78%)" },
@@ -217,8 +218,8 @@ export function ChartPage() {
   const chart = data?.[0];
   const sheets = useSheets();
   const [busy, setBusy] = useState(false);
-  const fade = useHeroFade(!!chart, key);
   const colors = gradientColors(style?.bg);
+  const player = usePlayer();
 
   // Refresh while downloads are running so finished songs become playable.
   const pending = chart?.entries.some((e) => e.downloading) ?? false;
@@ -249,42 +250,33 @@ export function ChartPage() {
 
   return (
     <Page title={style ? `${style.brand} ${style.label}` : "차트"} back glass tint={colors[0]}>
-      <PageGlow colors={colors} art={chart ? topArt(chart.entries, 1, 300)[0] : null} />
-      <div ref={fade.heroRef} className={`chart-hero ${fade.on ? "melt" : ""}`} style={{ background: style?.bg }}>
-        {chart && topArt(chart.entries, 1, 600)[0] && <img className="chart-hero-bg" src={topArt(chart.entries, 1, 600)[0]} alt="" />}
-        {chart && (
-          <div className="chart-hero-mosaic" aria-hidden>
-            {topArt(chart.entries, 4, 300).map((u, i) => (
-              <img key={i} src={u} alt="" />
-            ))}
-          </div>
-        )}
-        <div className="chart-tile-brand">{style?.brand}</div>
-        <div className="chart-hero-name">{style?.label}</div>
-        {chart && (
-          <>
-            <div className="chart-basis">{formatBasis(chart.basis)}</div>
-            <div className="chart-tile-count">
-              {readyText(playable.length, chart.entries.length)}
-            </div>
-          </>
-        )}
-      </div>
+      <PageGlow colors={colors} />
+      <CoverMosaic art={chart ? topArt(chart.entries, 9, 300) : []} fallback={style?.bg ?? colors[0]}>
+        <div className="cover-title">{style?.label ?? "차트"}</div>
+        <div className="cover-brand">{style?.brand}</div>
+        {chart && <div className="cover-basis">{formatBasis(chart.basis)}</div>}
+      </CoverMosaic>
       {error && <ErrorBox message={error} onRetry={reload} />}
       {!data && !error && <Loading />}
       {chart && (
         <>
-          <div className="play-row">
-            <PlayButtons songs={playable} />
-            <button className="pill big ghost" onClick={() => sheets.addTo(chart.entries.filter((e) => e.videoId || e.songId).map(ytToItem))}>
-              <IconPlus size={18} /> 차트 전체를 재생목록에 추가
+          <div className="cover-actions">
+            <button className="round-btn" aria-label="셔플" disabled={!playable.length} onClick={() => player.playList(playable, 0, { shuffle: true })}>
+              <IconShuffle size={22} />
             </button>
-            {missing.length > 0 && (
-              <button className="pill big ghost" onClick={downloadAll} disabled={busy}>
-                <IconDownload size={18} /> 나머지 {missing.length}곡 받기
-              </button>
-            )}
+            <button className="play-btn" disabled={!playable.length} onClick={() => player.playList(playable, 0)}>
+              <IconPlay size={18} /> 재생
+            </button>
+            <button className="round-btn" aria-label="차트 전체를 재생목록에 추가" onClick={() => sheets.addTo(chart.entries.filter((e) => e.videoId || e.songId).map(ytToItem))}>
+              <IconPlus size={22} />
+            </button>
           </div>
+          <p className="cover-desc"><b>{readyText(playable.length, chart.entries.length)}.</b> 서버에 없는 곡은 흐리게 보이고, 받으면 바로 들을 수 있어요.</p>
+          {missing.length > 0 && (
+            <button className="pill big ghost cover-more" onClick={downloadAll} disabled={busy}>
+              <IconDownload size={18} /> 나머지 {missing.length}곡 받기
+            </button>
+          )}
           <div className="list">
             <Windowed items={chart.entries} keyOf={(e) => `${e.rank}-${e.videoId}`} step={40}>
               {(e) => <YtRow item={e} playable={playable} />}

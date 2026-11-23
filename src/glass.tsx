@@ -1,15 +1,13 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Apple Music style detail pages ("glass" pages, see Page glass):
- * - PageGlow: the page colour pours down from the top with the blurred artwork inside it,
- *   darkening toward the bottom. A fixed layer behind the content, so scrolling never repaints it.
- * - useHeroFade: the hero card fades as it slides under the floating buttons. The fade is a
- *   scroll-linked CSS animation (Safari 26, Chrome 115+), so the browser runs it with the scroll;
- *   script only measures where the card is. Older browsers get a requestAnimationFrame fallback.
+ * - PageGlow: the page colour pours down from the top, darkening toward the bottom. A fixed layer
+ *   behind the content, so scrolling never repaints it.
+ * - CoverMosaic: the artwork fills the top edge to edge and fades out at the bottom. A heavily
+ *   blurred copy spills below it, so the colour under the artwork is the artwork's own, for any cover.
+ *   Title and buttons sit on the fade.
  */
-const NATIVE = typeof CSS !== "undefined" && CSS.supports("animation-timeline: scroll()");
-const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
 /** The two colours of a CSS gradient string like "linear-gradient(140deg,#1f9b48,#0b4a24)". */
 export const gradientColors = (bg: string | undefined): [string, string] => {
@@ -17,55 +15,72 @@ export const gradientColors = (bg: string | undefined): [string, string] => {
   return [c[0] ?? "#3a3a3e", c[1] ?? c[0] ?? "#161012"];
 };
 
-export function PageGlow({ colors, art }: { colors: [string, string]; art?: string | null }) {
-  return (
-    <div className="page-glow" aria-hidden style={{ "--glow-a": colors[0], "--glow-b": colors[1] } as React.CSSProperties}>
-      {art && <img src={art} alt="" />}
-    </div>
-  );
+export function PageGlow({ colors }: { colors: [string, string] }) {
+  return <div className="page-glow" aria-hidden style={{ "--glow-a": colors[0], "--glow-b": colors[1] } as React.CSSProperties} />;
 }
 
-/** `ready`: the hero has its final content. `key`: re-measure when the page shows something else. */
-export function useHeroFade(ready: boolean, key?: string) {
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [on, setOn] = useState(false);
+/**
+ * Average brightness (0..1) of images, or null when none can be read. Only same-origin images
+ * (our server's /api/cover) can be read; YouTube thumbnails are blocked by the browser.
+ */
+function useBrightness(urls: string[]) {
+  const [value, setValue] = useState<number | null>(null);
+  const key = urls.join("|");
+  useEffect(() => {
+    let alive = true;
+    const own = urls.filter((u) => u.startsWith("/"));
+    if (!own.length) { setValue(null); return; }
+    const read = (u: string) =>
+      new Promise<number | null>((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const c = document.createElement("canvas");
+            c.width = c.height = 8;
+            const g = c.getContext("2d", { willReadFrequently: true })!;
+            g.drawImage(img, 0, 0, 8, 8);
+            const d = g.getImageData(0, 0, 8, 8).data;
+            let sum = 0;
+            for (let i = 0; i < d.length; i += 4) sum += (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+            resolve(sum / (d.length / 4));
+          } catch {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = u;
+      });
+    Promise.all(own.map(read)).then((vals) => {
+      const ok = vals.filter((v): v is number => v != null);
+      if (alive) setValue(ok.length ? ok.reduce((a, b) => a + b, 0) / ok.length : null);
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return value;
+}
 
-  useLayoutEffect(() => {
-    const hero = heroRef.current;
-    if (!ready || !hero) return;
-    let h0 = 0, h1 = 1;
-
-    const measure = () => {
-      // Fade from when the card reaches the floating buttons until it has fully passed them.
-      const btn = document.querySelector(".topbar.glass .glass-btn")?.getBoundingClientRect();
-      const top = btn ? btn.bottom + 4 : 54;
-      const r = hero.getBoundingClientRect();
-      h0 = r.top + window.scrollY - top;
-      h1 = h0 + r.height;
-      hero.style.setProperty("--fade-h0", `${h0}px`);
-      hero.style.setProperty("--fade-h1", `${h1}px`);
-    };
-    const frame = () => { hero.style.opacity = String(1 - 0.92 * clamp((window.scrollY - h0) / (h1 - h0))); };
-    let queued = false;
-    const onScroll = () => {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(() => { queued = false; frame(); });
-    };
-
-    measure();
-    setOn(true);
-    if (!NATIVE) frame();
-    const ro = new ResizeObserver(() => { measure(); if (!NATIVE) frame(); });
-    ro.observe(hero);
-    ro.observe(document.documentElement);
-    if (!NATIVE) window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("scroll", onScroll);
-      hero.style.opacity = "";
-    };
-  }, [ready, key]);
-
-  return { heroRef, on };
+/**
+ * Full-bleed artwork header. `art`: up to 9 cover URLs (3x3; repeats when fewer).
+ * `fallback`: shown while there is no artwork yet (the chart's own colours).
+ */
+export function CoverMosaic({ art, fallback, children }: { art: string[]; fallback: string; children: React.ReactNode }) {
+  const tiles = art.length ? Array.from({ length: 9 }, (_, i) => art[i % art.length]) : [];
+  // Title sits over the lower two rows: judge brightness there. Unknown counts as bright (darker shade).
+  const brightness = useBrightness(tiles.slice(3));
+  const bright = brightness == null || brightness > 0.55;
+  const grid = (cls: string) => (
+    <div className={cls} aria-hidden>
+      {tiles.map((u, i) => <img key={i} src={u} alt="" />)}
+    </div>
+  );
+  return (
+    <section className={`cover-head ${bright ? "bright" : ""}`}>
+      <div className="cover-fallback" style={{ background: fallback }} aria-hidden />
+      {tiles.length > 0 && grid("cover-bleed")}
+      {tiles.length > 0 && grid("cover-grid")}
+      <div className="cover-shade" aria-hidden />
+      <div className="cover-text">{children}</div>
+    </section>
+  );
 }

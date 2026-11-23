@@ -9,8 +9,11 @@ export const BUILD_ID: string = __BUILD_ID__;
 
 /**
  * Makes sure an installed app does not keep running an old cached version: if the server has a different
- * build, drop the service worker and its caches and reload once.
+ * build, drop the service worker and the app's cached files and reload once.
+ * Songs saved for offline listening ("owl-offline") are the user's data, not app files: they are kept.
  */
+const KEEP = new Set(["owl-offline"]);
+
 export async function ensureLatest() {
   try {
     const res = await fetch("/version.json", { cache: "no-store" });
@@ -22,7 +25,7 @@ export async function ensureLatest() {
     sessionStorage.setItem(flag, "1");
     const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? [];
     await Promise.all(regs.map((r) => r.unregister()));
-    if ("caches" in window) await Promise.all((await caches.keys()).map((k) => caches.delete(k)));
+    if ("caches" in window) await Promise.all((await caches.keys()).filter((k) => !KEEP.has(k)).map((k) => caches.delete(k)));
     location.reload();
   } catch {
     /* offline: keep running what we have */

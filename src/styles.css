@@ -412,9 +412,7 @@ a.pill { text-decoration: none; }
 .guide-foot { margin-top: 24px; font-size: 13px; line-height: 1.55; color: var(--muted); word-break: keep-all; }
 
 /* ---------- saved on this device (offline) ---------- */
-.saved-mark { display: inline-flex; vertical-align: -2px; margin-right: 5px; color: var(--muted); }
 .spinner.tiny { display: inline-block; width: 12px; height: 12px; border-width: 2px; vertical-align: -2px; }
-.saved-mark.spinner.tiny { margin-right: 5px; }
 .offline-head { margin: 0 20px 8px; display: flex; flex-direction: column; gap: 6px; }
 .offline-stats { font-size: 15px; }
 .offline-note { font-size: 13.5px; color: var(--muted); line-height: 1.5; word-break: keep-all; }

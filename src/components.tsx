@@ -232,28 +232,36 @@ export function SongRow({ song, list, index, showCover = true, number, extraActi
       )}
       <div className="row-text">
         <div className="row-title">{song.title}</div>
-        <div className="row-sub">
-          <SavedMark id={song.id} />
-          {song.artist}
-        </div>
+        <div className="row-sub">{song.artist}</div>
       </div>
       <div className="row-meta">{formatTime(song.duration)}</div>
+      <div className="row-action" onClick={(e) => e.stopPropagation()}>
+        <DeviceArrow song={song} />
+      </div>
       <MoreButton onClick={menu} />
     </div>
   );
 }
 
-/** Small mark before the artist name: saved on this device, or being saved. */
-export function SavedMark({ id }: { id?: string | null }) {
+/** Row arrow for a library song: tap to save to this device; spinner while saving; filled when saved. */
+export function DeviceArrow({ song }: { song: Song }) {
   const off = useOffline();
-  if (off.has(id))
+  if (off.has(song.id))
     return (
-      <span className="saved-mark" aria-label="기기에 저장됨">
-        <IconSaved size={13} />
+      <span className="have" aria-label="기기에 저장됨">
+        <IconSaved size={22} />
       </span>
     );
-  if (off.queued(id)) return <span className="saved-mark spinner tiny" aria-label="기기에 저장 중" />;
-  return null;
+  if (off.queued(song.id)) return <span className="spinner" aria-label="기기에 저장 중" />;
+  return (
+    <button
+      className="icon-btn accent"
+      aria-label="기기에 저장"
+      onClick={() => saveSongs([song]).catch((e) => toast((e as Error).message))}
+    >
+      <IconDownload size={26} />
+    </button>
+  );
 }
 
 /** "기기에 저장" / "기기에서 삭제" menu item for one library song. */
@@ -348,15 +356,8 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
   const downloading = !song && (item.downloading || requested);
   const waitingForServer = !!item.videoId && off.pending.some((x) => x.videoId === item.videoId);
 
+  // Not on the server yet: download it there, then save it to the device once it arrives.
   const saveHere = async () => {
-    if (song) {
-      try {
-        await saveSongs([song]);
-      } catch (err) {
-        toast((err as Error).message);
-      }
-      return;
-    }
     setRequested(true);
     await saveToDevice([ytToItem(item)]);
     if (item.videoId) onDownloaded?.(item.videoId);
@@ -399,13 +400,11 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
       <div className="row-action" onClick={(e) => e.stopPropagation()}>
         {/* The arrow saves to this device. A song not on the server yet stays dim; its arrow downloads it
             to the server first and saves it to the device once it arrives. */}
-        {song && off.has(song.id) ? (
-          <span className="have" aria-label="기기에 저장됨">
-            <IconSaved size={22} />
-          </span>
-        ) : (song && off.queued(song.id)) || (!song && (downloading || waitingForServer)) ? (
-          <span className="spinner" aria-label={song ? "기기에 저장 중" : "서버에서 받는 중"} />
-        ) : song || item.videoId ? (
+        {song ? (
+          <DeviceArrow song={song} />
+        ) : downloading || waitingForServer ? (
+          <span className="spinner" aria-label="서버에서 받는 중" />
+        ) : item.videoId ? (
           <button className="icon-btn accent" onClick={saveHere} aria-label="기기에 저장">
             <IconDownload size={26} />
           </button>

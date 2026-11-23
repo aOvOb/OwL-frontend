@@ -38,10 +38,47 @@ const ready: Promise<void> = (async () => {
     const res = await (await caches.open(CACHE)).match(INDEX_URL);
     if (res) index = { songs: {}, pending: {}, ...(await res.json()) };
   } catch {
-    // unreadable list: start empty (files are rewritten when saved again)
+    // unreadable list: start empty, recover() below rebuilds it from the files
   }
   changed();
 })();
+
+const SONG_HEADER = "X-Owl-Song";
+const STREAM_PREFIX = "/api/stream/";
+
+/**
+ * Puts back saved songs whose audio file is on the device but missing from the list (the list was
+ * lost or overwritten). Song details come from the file itself, or from the server for files saved
+ * before they carried them. Runs when the app opens; files it cannot name yet are tried next time.
+ */
+async function recover() {
+  await ready;
+  const c = await caches.open(CACHE);
+  let found = 0;
+  for (const req of await c.keys()) {
+    const path = new URL(req.url).pathname;
+    if (!path.startsWith(STREAM_PREFIX)) continue;
+    const id = decodeURIComponent(path.slice(STREAM_PREFIX.length));
+    if (!id || index.songs[id]) continue;
+    const res = await c.match(req);
+    if (!res) continue;
+    let song: Song | null = null;
+    try {
+      const meta = res.headers.get(SONG_HEADER);
+      song = meta ? (JSON.parse(decodeURIComponent(meta)) as Song) : await api.song(id);
+    } catch {
+      continue;
+    }
+    if (!song?.id) continue;
+    const size = Number(res.headers.get("Content-Length")) || (await res.blob()).size;
+    index.songs[id] = { song, size, savedAt: Date.now() };
+    found++;
+  }
+  if (found) {
+    await writeIndex();
+    changed();
+  }
+}
 
 async function writeIndex() {
   const c = await caches.open(CACHE);
@@ -130,7 +167,13 @@ async function saveOne(song: Song) {
   const blob = await res.blob();
   await c.put(
     streamUrl(song.id),
-    new Response(blob, { headers: { "Content-Type": res.headers.get("Content-Type") || "audio/mp4", "Content-Length": String(blob.size) } }),
+    new Response(blob, {
+      headers: {
+        "Content-Type": res.headers.get("Content-Type") || "audio/mp4",
+        "Content-Length": String(blob.size),
+        [SONG_HEADER]: encodeURIComponent(JSON.stringify(song)), // lets recover() rebuild the list from the files
+      },
+    }),
   );
   // Covers and lyrics are nice to have: a failure here does not fail the song.
   const cover = song.coverArt ?? song.id;
@@ -276,7 +319,7 @@ export const canPlayNow = (id: string) => navigator.onLine || isSaved(id);
 
 // Pending songs: check when the app opens, comes back to the screen, and every 5 minutes.
 if (supported) {
-  ready.then(() => checkPending());
+  ready.then(() => recover().catch(() => {})).then(() => checkPending());
   document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && checkPending());
   window.addEventListener("online", () => checkPending());
   setInterval(checkPending, 5 * 60 * 1000);

@@ -87,9 +87,9 @@ body:has(.topbar.glass) .status-cover { display: none; }
    dark at the bottom. Fixed behind the content (z-index -1 sits above the body background). */
 .page-glow { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
   background:
-    radial-gradient(130% 55% at 50% -5%, color-mix(in srgb, var(--glow-a) 85%, transparent), transparent 72%),
-    radial-gradient(70% 40% at 100% 25%, color-mix(in srgb, var(--glow-b) 70%, var(--glow-a) 30%), transparent 75%),
-    linear-gradient(180deg, color-mix(in srgb, var(--glow-a) 45%, #0c0809) 0%, color-mix(in srgb, var(--glow-b) 50%, #0c0809) 45%, #0b0809 100%); }
+    radial-gradient(130% 60% at 50% -5%, color-mix(in srgb, var(--glow-a) 95%, transparent), transparent 75%),
+    radial-gradient(70% 45% at 100% 25%, color-mix(in srgb, var(--glow-b) 80%, var(--glow-a) 20%), transparent 78%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glow-a) 58%, #0c0809) 0%, color-mix(in srgb, var(--glow-b) 60%, #0c0809) 50%, color-mix(in srgb, var(--glow-b) 22%, #0b0809) 100%); }
 /* Full-bleed artwork header (CoverHeader). Starts at the very top, under the floating buttons. */
 .cover-head { position: relative; z-index: 0; height: min(118vw, 560px); margin-top: calc(-54px - var(--safe-top)); }
 .cover-fallback { position: absolute; inset: 0; opacity: .7;

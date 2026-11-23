@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
  * Apple Music style detail pages ("glass" pages, see Page glass):
  * - PageGlow: the page colour pours down from the top, darkening toward the bottom. A fixed layer
  *   behind the content, so scrolling never repaints it.
- * - CoverMosaic: the artwork fills the top edge to edge and fades out at the bottom. A heavily
+ * - CoverHeader: one cover fills the top edge to edge and fades out at the bottom. A heavily
  *   blurred copy spills below it, so the colour under the artwork is the artwork's own, for any cover.
  *   Title and buttons sit on the fade.
  */
@@ -61,24 +61,18 @@ function useBrightness(urls: string[]) {
 }
 
 /**
- * Full-bleed artwork header. `art`: up to 9 cover URLs (3x3; repeats when fewer).
- * `fallback`: shown while there is no artwork yet (the chart's own colours).
+ * Full-bleed artwork header: one cover, large. `fallback`: shown while there is no artwork yet
+ * (the chart's own colours).
  */
-export function CoverMosaic({ art, fallback, children }: { art: string[]; fallback: string; children: React.ReactNode }) {
-  const tiles = art.length ? Array.from({ length: 9 }, (_, i) => art[i % art.length]) : [];
-  // Title sits over the lower two rows: judge brightness there. Unknown counts as bright (darker shade).
-  const brightness = useBrightness(tiles.slice(3));
+export function CoverHeader({ art, fallback, children }: { art: string | null; fallback: string; children: React.ReactNode }) {
+  // Unknown brightness counts as bright (darker shade behind the title).
+  const brightness = useBrightness(art ? [art] : []);
   const bright = brightness == null || brightness > 0.55;
-  const grid = (cls: string) => (
-    <div className={cls} aria-hidden>
-      {tiles.map((u, i) => <img key={i} src={u} alt="" />)}
-    </div>
-  );
   return (
     <section className={`cover-head ${bright ? "bright" : ""}`}>
       <div className="cover-fallback" style={{ background: fallback }} aria-hidden />
-      {tiles.length > 0 && grid("cover-bleed")}
-      {tiles.length > 0 && grid("cover-grid")}
+      {art && <img className="cover-bleed" src={art} alt="" aria-hidden />}
+      {art && <img className="cover-img" src={art} alt="" aria-hidden />}
       <div className="cover-shade" aria-hidden />
       <div className="cover-text">{children}</div>
     </section>

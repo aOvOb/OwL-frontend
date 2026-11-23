@@ -83,17 +83,16 @@ img { display: block; }
     radial-gradient(130% 55% at 50% -5%, color-mix(in srgb, var(--glow-a) 85%, transparent), transparent 72%),
     radial-gradient(70% 40% at 100% 25%, color-mix(in srgb, var(--glow-b) 70%, var(--glow-a) 30%), transparent 75%),
     linear-gradient(180deg, color-mix(in srgb, var(--glow-a) 45%, #0c0809) 0%, color-mix(in srgb, var(--glow-b) 50%, #0c0809) 45%, #0b0809 100%); }
-/* Full-bleed artwork header (CoverMosaic). Starts at the very top, under the floating buttons. */
+/* Full-bleed artwork header (CoverHeader). Starts at the very top, under the floating buttons. */
 .cover-head { position: relative; z-index: 0; height: min(118vw, 560px); margin-top: calc(-54px - var(--safe-top)); }
 .cover-fallback { position: absolute; inset: 0; opacity: .7;
   -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent); mask-image: linear-gradient(180deg, #000 40%, transparent); }
-.cover-grid, .cover-bleed { position: absolute; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
-.cover-grid img, .cover-bleed img { width: 100%; height: 100%; object-fit: cover; }
+.cover-img, .cover-bleed { position: absolute; display: block; object-fit: cover; }
 /* The artwork fades out at the bottom instead of ending in an edge. */
-.cover-grid { inset: 0; z-index: 1; transform-origin: 50% 0;
+.cover-img { left: 0; top: 0; width: 100%; height: 100%; z-index: 1; transform-origin: 50% 0;
   -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 98%); mask-image: linear-gradient(180deg, #000 45%, transparent 98%); }
 /* Blurred copy spilling below: the colour under the artwork is the artwork's own. */
-.cover-bleed { left: -15%; right: -15%; top: 10%; height: 150%; z-index: 0; filter: blur(60px) saturate(1.3); opacity: .85;
+.cover-bleed { left: -15%; width: 130%; top: 10%; height: 150%; z-index: 0; filter: blur(60px) saturate(1.3); opacity: .85;
   -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 100%); mask-image: linear-gradient(180deg, #000 30%, transparent 100%); }
 /* Soft darkening behind the title; stronger on bright covers (and when brightness is unknown). */
 .cover-shade { position: absolute; z-index: 2; left: -10%; right: -10%; bottom: -60px; height: 70%; pointer-events: none;
@@ -108,10 +107,10 @@ img { display: block; }
 @keyframes owl-drift { to { transform: translateY(22%) scale(1.05); opacity: 0; } }
 @keyframes owl-fade-out { to { opacity: 0; } }
 @supports (animation-timeline: scroll()) {
-  .cover-grid { animation: owl-drift linear both; animation-timeline: scroll(root); animation-range: 0px 460px; }
+  .cover-img { animation: owl-drift linear both; animation-timeline: scroll(root); animation-range: 0px 460px; }
   .cover-bleed, .cover-text { animation: owl-fade-out linear both; animation-timeline: scroll(root); animation-range: 120px 520px; }
 }
-@media (prefers-reduced-motion: reduce) { .cover-grid, .cover-bleed, .cover-text { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cover-img, .cover-bleed, .cover-text { animation: none; } }
 .cover-actions, .cover-desc, .cover-more, .glass-page .list { position: relative; z-index: 1; }
 .cover-actions { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 6px 20px 0; }
 .round-btn { width: 52px; height: 52px; border-radius: 26px; display: grid; place-items: center; color: #fff; background: rgba(255,255,255,.14); flex: none; }

@@ -6,7 +6,7 @@ import { IconDownload, IconPlay, IconPlus, IconShuffle } from "../icons";
 import { usePlayer } from "../player";
 import { useSheets } from "../sheets";
 import { Windowed } from "../windowed";
-import { CoverMosaic, gradientColors, PageGlow } from "../glass";
+import { CoverHeader, gradientColors, PageGlow } from "../glass";
 
 export const CHART_STYLE = [
   { key: "melon", prefix: "멜론", brand: "Melon", label: "TOP 100", bg: "linear-gradient(140deg,#1f9b48,#0b4a24)", shade: "linear-gradient(180deg,rgba(11,74,36,0) 20%,rgba(11,74,36,.92) 78%)" },
@@ -220,6 +220,12 @@ export function ChartPage() {
   const [busy, setBusy] = useState(false);
   const colors = gradientColors(style?.bg);
   const player = usePlayer();
+  // One cover from the top 9, picked at random once per visit (stays put across the 15 s refreshes).
+  const pick = useMemo(() => Math.random(), [key]);
+  const heroArt = useMemo(() => {
+    const pool = (chart?.entries ?? []).slice(0, 9).filter((e) => entryArt(e, 900));
+    return pool.length ? entryArt(pool[Math.floor(pick * pool.length)], 900) : null;
+  }, [chart, pick]);
 
   // Refresh while downloads are running so finished songs become playable.
   const pending = chart?.entries.some((e) => e.downloading) ?? false;
@@ -251,11 +257,11 @@ export function ChartPage() {
   return (
     <Page title={style ? `${style.brand} ${style.label}` : "차트"} back glass tint={colors[0]}>
       <PageGlow colors={colors} />
-      <CoverMosaic art={chart ? topArt(chart.entries, 9, 300) : []} fallback={style?.bg ?? colors[0]}>
+      <CoverHeader art={heroArt} fallback={style?.bg ?? colors[0]}>
         <div className="cover-title">{style?.label ?? "차트"}</div>
         <div className="cover-brand">{style?.brand}</div>
         {chart && <div className="cover-basis">{formatBasis(chart.basis)}</div>}
-      </CoverMosaic>
+      </CoverHeader>
       {error && <ErrorBox message={error} onRetry={reload} />}
       {!data && !error && <Loading />}
       {chart && (

@@ -60,6 +60,37 @@ img { display: block; }
 .topbar-side { display: flex; align-items: center; }
 .topbar-side.right { justify-content: flex-end; }
 .topbar-title { text-align: center; font-weight: 600; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Glass pages (Apple Music style detail pages): no bar; content scrolls up to the status bar,
+   buttons float as Liquid Glass. A short soft edge under the status bar keeps the top readable. */
+.topbar.glass { position: fixed; left: 0; right: 0; max-width: 900px; margin: 0 auto; background: none; pointer-events: none; z-index: 20; }
+.topbar.glass .topbar-side > * { pointer-events: auto; }
+.topbar.glass::before { content: ""; position: absolute; left: 0; right: 0; top: var(--safe-top); height: 34px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(12,8,9,.55), rgba(12,8,9,0)); opacity: 0; }
+.topbar-space { height: calc(48px + var(--safe-top)); }
+.glass-btn, .glass-surface {
+  -webkit-backdrop-filter: blur(16px) saturate(1.9); backdrop-filter: blur(16px) saturate(1.9);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-tint, #3a3a3e) 55%, rgba(255,255,255,.14)), color-mix(in srgb, var(--glass-tint, #3a3a3e) 40%, rgba(255,255,255,.04)));
+  border: .5px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 1px rgba(255,255,255,.06), 0 8px 20px rgba(0,0,0,.35);
+}
+.icon-btn.glass-btn { min-width: 40px; width: 40px; height: 40px; border-radius: 20px; margin-left: 6px; color: #fff; }
+.icon-btn.glass-btn svg { width: 22px; height: 22px; margin-left: -2px; }
+
+/* Docking title (see dock.tsx): a zero-height sticky anchor; it scrolls with the page until the title
+   reaches the top centre, then stays. Shrink, capsule and card fade are tied to the scroll position. */
+.title-dock { position: sticky; top: var(--dock-top, 0px); height: 0; z-index: 15; pointer-events: none; }
+.title-dock-fly { position: absolute; left: var(--dock-nx); top: var(--dock-ny); font-size: 30px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; white-space: nowrap; color: #fff; transform-origin: 0 50%; }
+.title-dock-pill { position: absolute; left: calc(var(--dock-px) - var(--dock-pw) / 2); top: calc(var(--dock-ny) + var(--dock-nh) / 2 - 20px); width: var(--dock-pw); height: 40px; border-radius: 20px; opacity: 0; }
+@keyframes owl-dock { to { transform: translateX(var(--dock-dx)) scale(.5667); } }
+@keyframes owl-show { to { opacity: 1; } }
+@keyframes owl-melt { to { opacity: .08; } }
+@supports (animation-timeline: scroll()) {
+  .title-dock-fly { animation: owl-dock ease-in-out both; animation-timeline: scroll(root); animation-range: max(0px, calc(var(--dock-s) - 110px)) var(--dock-s); }
+  .title-dock-pill { animation: owl-show linear both; animation-timeline: scroll(root); animation-range: calc(var(--dock-s) - 40px) var(--dock-s); }
+  .chart-hero.melt { animation: owl-melt linear both; animation-timeline: scroll(root); animation-range: var(--dock-h0) var(--dock-h1); }
+  .topbar.glass::before { animation: owl-show linear both; animation-timeline: scroll(root); animation-range: 0px 24px; }
+}
+
 .large-title { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 4px 20px 14px; }
 
 .icon-btn { display: inline-grid; place-items: center; min-width: 44px; height: 44px; border-radius: 22px; color: var(--text); position: relative; }
@@ -147,7 +178,7 @@ img { display: block; }
 .chart-banner-top li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chart-banner-top b { display: inline-block; width: 16px; }
 .chart-hero { margin: 8px 20px 0; padding: 26px 20px; border-radius: 16px; color: #fff; }
-.chart-hero-name { font-size: 30px; font-weight: 800; letter-spacing: -0.01em; margin-top: 2px; }
+.chart-hero-name { font-size: 30px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin-top: 2px; width: fit-content; white-space: nowrap; }
 
 /* ---------- rows ---------- */
 .list { display: flex; flex-direction: column; padding: 0 0 0 20px; }

@@ -93,12 +93,16 @@ export function Cover({ id, src, size = 300, className = "", rounded = "md" }: {
   );
 }
 
-export function Page({ title, back, right, children, large = true }: {
+export function Page({ title, back, right, children, large = true, glass = false, tint }: {
   title?: string;
   back?: boolean;
   right?: React.ReactNode;
   children: React.ReactNode;
   large?: boolean;
+  /** Apple Music style: no bar, content scrolls to the top, buttons float as Liquid Glass. */
+  glass?: boolean;
+  /** Colour mixed into the glass buttons (the page's own colour). */
+  tint?: string;
 }) {
   const nav = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -109,12 +113,12 @@ export function Page({ title, back, right, children, large = true }: {
     return () => window.removeEventListener("scroll", on);
   }, []);
   return (
-    <div className="page">
+    <div className="page" style={tint ? ({ "--glass-tint": tint } as React.CSSProperties) : undefined}>
       {/* Large-title screens: the bar scrolls away with the page. Detail pages: it stays, with a title. */}
-      <header className={`topbar ${large ? "static" : "solid"} ${scrolled && !large ? "scrolled" : ""}`}>
+      <header className={glass ? "topbar glass" : `topbar ${large ? "static" : "solid"} ${scrolled && !large ? "scrolled" : ""}`}>
         <div className="topbar-side">
           {back && (
-            <button className="icon-btn accent" onClick={() => nav(-1)} aria-label="뒤로">
+            <button className={glass ? "icon-btn glass-btn" : "icon-btn accent"} onClick={() => nav(-1)} aria-label="뒤로">
               <IconBack size={26} />
             </button>
           )}
@@ -123,7 +127,8 @@ export function Page({ title, back, right, children, large = true }: {
         <div className="topbar-title" />
         <div className="topbar-side right">{right}</div>
       </header>
-      {large && title && <h1 className="large-title">{title}</h1>}
+      {glass && <div className="topbar-space" aria-hidden />}
+      {large && !glass && title && <h1 className="large-title">{title}</h1>}
       {children}
     </div>
   );

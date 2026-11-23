@@ -5,6 +5,7 @@ import { ErrorBox, Loading, Page, PlayButtons, toast, useLoad, YtRow } from "../
 import { IconDownload, IconPlus } from "../icons";
 import { useSheets } from "../sheets";
 import { Windowed } from "../windowed";
+import { DockTitle, useDockTitle } from "../dock";
 
 export const CHART_STYLE = [
   { key: "melon", prefix: "멜론", brand: "Melon", label: "TOP 100", bg: "linear-gradient(140deg,#1f9b48,#0b4a24)", shade: "linear-gradient(180deg,rgba(11,74,36,0) 20%,rgba(11,74,36,.92) 78%)" },
@@ -216,6 +217,7 @@ export function ChartPage() {
   const chart = data?.[0];
   const sheets = useSheets();
   const [busy, setBusy] = useState(false);
+  const dock = useDockTitle(!!chart, key);
 
   // Refresh while downloads are running so finished songs become playable.
   const pending = chart?.entries.some((e) => e.downloading) ?? false;
@@ -245,8 +247,10 @@ export function ChartPage() {
   };
 
   return (
-    <Page title={style ? `${style.brand} ${style.label}` : "차트"} back large={false}>
-      <div className="chart-hero" style={{ background: style?.bg }}>
+    <Page title={style ? `${style.brand} ${style.label}` : "차트"} back glass tint={style ? tintOf(style.bg) : undefined}>
+      <div ref={dock.wrapRef}>
+      <DockTitle dockRef={dock.dockRef} text={style?.label ?? "차트"} on={dock.on} />
+      <div ref={dock.heroRef} className={`chart-hero ${dock.on ? "melt" : ""}`} style={{ background: style?.bg }}>
         {chart && topArt(chart.entries, 1, 600)[0] && <img className="chart-hero-bg" src={topArt(chart.entries, 1, 600)[0]} alt="" />}
         {chart && (
           <div className="chart-hero-mosaic" aria-hidden>
@@ -256,7 +260,7 @@ export function ChartPage() {
           </div>
         )}
         <div className="chart-tile-brand">{style?.brand}</div>
-        <div className="chart-hero-name">{style?.label}</div>
+        <div ref={dock.nameRef} className="chart-hero-name" style={dock.on ? { visibility: "hidden" } : undefined}>{style?.label}</div>
         {chart && (
           <>
             <div className="chart-basis">{formatBasis(chart.basis)}</div>
@@ -288,6 +292,10 @@ export function ChartPage() {
           </div>
         </>
       )}
+      </div>
     </Page>
   );
 }
+
+/** First colour of a chart's gradient, used to tint the glass buttons (Apple Music tints them with the page). */
+const tintOf = (bg: string) => bg.match(/#[0-9a-f]{6}/i)?.[0] ?? "#2a2a2e";

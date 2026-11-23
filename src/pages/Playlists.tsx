@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { api, itemToSong, prepareCover, songToItem, ytToItem, type ItemInput, type PlaylistSummary, type Song } from "../api";
-import { Cover, ErrorBox, Loading, Page, PlayButtons, useLoad, YtRow } from "../components";
+import { Cover, DeviceSaveButton, ErrorBox, Loading, Page, PlayButtons, useLoad, YtRow } from "../components";
 import { IconCheck, IconChevron, IconDownload, IconMore, IconPlus, IconSearch, IconSort } from "../icons";
 import { PlaylistThumb, useSheets } from "../sheets";
 import { SORT_LABEL, sortActions, sortItems, useSort } from "../sort";
@@ -331,6 +331,7 @@ export function MyPlaylistPage() {
                 <IconDownload size={18} /> 안 받은 {missing.length}곡 받기
               </button>
             )}
+            <DeviceSaveButton items={data.items} name={data.name} />
           </div>
           {data.items.length === 0 && <p className="empty">아직 노래가 없어요. 노래 추가를 눌러 찾아 보세요</p>}
           <div className="list">

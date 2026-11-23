@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import { api, formatTime, songToItem } from "../api";
-import { Cover, ErrorBox, Loading, Page, PlayButtons, SongRow, useLoad } from "../components";
+import { Cover, DeviceSaveButton, ErrorBox, Loading, Page, PlayButtons, SongRow, useLoad } from "../components";
 import { IconCheck, IconChevron, IconPlus, IconSort } from "../icons";
 import { useSheets } from "../sheets";
 import { SORT_LABEL, sortActions, sortItems, useSort, type Sort, type SortKey } from "../sort";
 import { APP_VERSION, BUILD_ID } from "../version";
 import { Windowed } from "../windowed";
 import { Downloads } from "./Downloads";
+import { OfflineSongs } from "./Offline";
 import { MyPlaylistsList } from "./Playlists";
 
-type Tab = "playlists" | "albums" | "artists" | "downloads";
+type Tab = "playlists" | "albums" | "artists" | "offline" | "downloads";
 
 export function Library() {
-  const [tab, setTab] = useState<Tab>("playlists");
+  // ?tab=offline opens a tab directly (the offline bar links there).
+  const [params, setParams] = useSearchParams();
+  const tab = (params.get("tab") as Tab) || "playlists";
+  const setTab = (t: Tab) => setParams(t === "playlists" ? {} : { tab: t }, { replace: true });
   const tabs: [Tab, string][] = [
     ["playlists", "재생목록"],
     ["albums", "앨범"],
     ["artists", "아티스트"],
+    ["offline", "오프라인"],
     ["downloads", "다운로드"],
   ];
   return (
@@ -32,6 +37,7 @@ export function Library() {
       {tab === "playlists" && <MyPlaylistsList />}
       {tab === "albums" && <Albums />}
       {tab === "artists" && <Artists />}
+      {tab === "offline" && <OfflineSongs />}
       {tab === "downloads" && <Downloads />}
       <VersionLine />
     </Page>
@@ -232,6 +238,7 @@ export function PlaylistPage() {
               {songs.length}곡{total ? ` · ${Math.round(total / 60)}분` : ""}
             </p>
             <PlayButtons songs={songs} />
+            <DeviceSaveButton items={songs.map(songToItem)} name={data.name ?? "재생목록"} />
           </div>
           <div className="list">
             {songs.map((s, i) => (
@@ -279,6 +286,7 @@ export function AlbumPage() {
             <button className="pill big ghost wide" onClick={() => sheets.addTo(songs.map(songToItem))}>
               <IconPlus size={18} /> 재생목록에 추가
             </button>
+            <DeviceSaveButton items={songs.map(songToItem)} name={data.name ?? "앨범"} />
           </div>
           <div className="list">
             {songs.map((s, i) => (

@@ -136,6 +136,13 @@ export const IconLogout = (p: P) => (
     <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11" />
   </Svg>
 );
+/** Saved on this device: a filled circle with an arrow pointing down (Apple Music style). */
+export const IconSaved = (p: P) => (
+  <svg width={p.size ?? 24} height={p.size ?? 24} viewBox="0 0 24 24" className={p.className} aria-hidden>
+    <circle cx="12" cy="12" r="11" fill="currentColor" />
+    <path d="M12 6.5v9M8 11.8l4 4 4-4" fill="none" stroke="#0c0809" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 export const IconClose = (p: P) => (
   <Svg {...p}>
     <path d="M6 6l12 12M18 6 6 18" />

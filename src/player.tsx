@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { coverUrl, streamUrl, type Song } from "./api";
+import { canPlayNow } from "./offline";
 
 type Repeat = "off" | "all" | "one";
 
@@ -87,20 +88,26 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     [load],
   );
 
+  // Offline, only songs saved on the device can play: skip over the others.
+  const nextPlayable = (q: Song[], from: number, step: 1 | -1) => {
+    for (let k = from; k >= 0 && k < q.length; k += step) if (canPlayNow(q[k].id)) return k;
+    return -1;
+  };
+
   const next = useCallback(() => {
     const { queue: q, index: i, repeat: r } = stateRef.current;
-    if (i + 1 < q.length) go(i + 1);
-    else if (r === "all" && q.length) go(0);
-    else {
-      audioRef.current?.pause();
-    }
+    let k = nextPlayable(q, i + 1, 1);
+    if (k < 0 && r === "all") k = nextPlayable(q, 0, 1);
+    if (k >= 0) go(k);
+    else audioRef.current?.pause();
   }, [go]);
 
   const prev = useCallback(() => {
     const a = audioRef.current!;
-    const { index: i } = stateRef.current;
-    if (a.currentTime > 3 || i === 0) a.currentTime = 0;
-    else go(i - 1);
+    const { queue: q, index: i } = stateRef.current;
+    const k = nextPlayable(q, i - 1, -1);
+    if (a.currentTime > 3 || k < 0) a.currentTime = 0;
+    else go(k);
   }, [go]);
 
   // audio element events
@@ -186,6 +193,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       if (sh) {
         q = shuffled(songs);
         i = 0;
+      }
+      if (!canPlayNow(q[i].id)) {
+        const k = nextPlayable(q, i, 1);
+        if (k < 0) return window.dispatchEvent(new CustomEvent("owl:toast", { detail: "오프라인이라 기기에 저장한 곡만 재생할 수 있어요" }));
+        i = k;
       }
       setShuffleState(sh);
       setQueue(q);

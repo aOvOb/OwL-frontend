@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { api, coverUrl, formatTime, songToItem, ytToItem, ytToSong, type Song, type YtSong } from "./api";
+import { api, coverUrl, formatTime, songToItem, ytToItem, ytToSong, type ItemInput, type Song, type YtSong } from "./api";
 import { LyricsView } from "./lyrics";
+import { removeSongs, saveItems, saveSongs, useOffline, useOnline, type OfflineView } from "./offline";
 import { useSheets, type Action } from "./sheets";
 import {
   IconBack,
@@ -20,6 +21,7 @@ import {
   IconPlay,
   IconPrev,
   IconRepeat,
+  IconSaved,
   IconSearch,
   IconShuffle,
 } from "./icons";
@@ -58,6 +60,12 @@ export function Toaster() {
     clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setMsg(null), 2400);
   };
+  // Code outside React (e.g. the player) can show a message too.
+  useEffect(() => {
+    const on = (e: Event) => pushToast(String((e as CustomEvent).detail ?? ""));
+    window.addEventListener("owl:toast", on);
+    return () => window.removeEventListener("owl:toast", on);
+  }, []);
   return <div className={`toast ${msg ? "show" : ""}`}>{msg}</div>;
 }
 
@@ -194,16 +202,23 @@ export function SongRow({ song, list, index, showCover = true, number, extraActi
 }) {
   const p = usePlayer();
   const sheets = useSheets();
+  const off = useOffline();
+  const online = useOnline();
   const active = p.current?.id === song.id;
   const menu = () =>
     sheets.actions(song.title ?? "", song.artist, [
       { label: "다음에 재생", run: () => (p.playNext(song), toast("다음에 재생해요")) },
       { label: "대기열 맨 뒤에 추가", run: () => (p.addToQueue(song), toast("대기열에 추가했어요")) },
       { label: "재생목록에 추가", run: () => sheets.addTo([songToItem(song)]) },
+      deviceAction(off, song),
       ...extraActions,
     ]);
   return (
-    <div className={`row ${active ? "active" : ""}`} onClick={() => p.playList(list, index)} role="button">
+    <div
+      className={`row ${active ? "active" : ""} ${!online && !off.has(song.id) ? "dim" : ""}`}
+      onClick={() => p.playList(list, index)}
+      role="button"
+    >
       {showCover ? (
         <div className="row-cover">
           <Cover id={song.coverArt ?? song.id} size={120} rounded="sm" />
@@ -218,12 +233,98 @@ export function SongRow({ song, list, index, showCover = true, number, extraActi
       )}
       <div className="row-text">
         <div className="row-title">{song.title}</div>
-        <div className="row-sub">{song.artist}</div>
+        <div className="row-sub">
+          <SavedMark id={song.id} />
+          {song.artist}
+        </div>
       </div>
       <div className="row-meta">{formatTime(song.duration)}</div>
       <MoreButton onClick={menu} />
     </div>
   );
+}
+
+/** Small mark before the artist name: saved on this device, or being saved. */
+export function SavedMark({ id }: { id?: string | null }) {
+  const off = useOffline();
+  if (off.has(id))
+    return (
+      <span className="saved-mark" aria-label="기기에 저장됨">
+        <IconSaved size={13} />
+      </span>
+    );
+  if (off.queued(id)) return <span className="saved-mark spinner tiny" aria-label="기기에 저장 중" />;
+  return null;
+}
+
+/** "기기에 저장" / "기기에서 삭제" menu item for one library song. */
+export function deviceAction(off: OfflineView, song: Song): Action {
+  return off.has(song.id)
+    ? { label: "기기에서 삭제", run: async () => (await removeSongs([song.id]), toast("기기에서 삭제했어요")) }
+    : {
+        label: "기기에 저장",
+        run: async () => {
+          try {
+            await saveSongs([song]);
+            toast("기기에 저장하는 중이에요");
+          } catch (e) {
+            toast((e as Error).message);
+          }
+        },
+      };
+}
+
+/**
+ * Album/playlist button: "기기에 저장" -> "저장 중 (n/m)" -> "기기에 저장됨" (tap to delete from the device).
+ * `items` may include songs not on the server yet; they are downloaded there first.
+ */
+export function DeviceSaveButton({ items, name }: { items: ItemInput[]; name: string }) {
+  const off = useOffline();
+  const sheets = useSheets();
+  const ids = items.map((i) => i.songId).filter((x): x is string => !!x);
+  if (!items.length) return null;
+  const savedN = ids.filter((id) => off.has(id)).length;
+  const savingN = ids.filter((id) => off.queued(id)).length;
+  const waiting = items.filter((i) => !i.songId && i.videoId && off.pending.some((p) => p.videoId === i.videoId)).length;
+  const all = savedN === items.length;
+  if (all)
+    return (
+      <button
+        className="pill big ghost wide"
+        onClick={() =>
+          sheets.actions(`"${name}"을(를) 기기에서 삭제할까요?`, `${savedN}곡의 파일이 이 기기에서 지워져요`, [
+            { label: "기기에서 삭제", danger: true, run: async () => (await removeSongs(ids), toast("기기에서 삭제했어요")) },
+          ])
+        }
+      >
+        <IconSaved size={18} /> 기기에 저장됨
+      </button>
+    );
+  return (
+    <button className="pill big ghost wide" disabled={savingN > 0} onClick={() => saveToDevice(items)}>
+      {savingN > 0 ? (
+        <>
+          <span className="spinner tiny" /> 기기에 저장 중 ({savedN}/{items.length})
+        </>
+      ) : (
+        <>
+          <IconDownload size={18} /> 기기에 저장{savedN || waiting ? ` (${savedN}/${items.length}${waiting ? `, 서버 대기 ${waiting}` : ""})` : ""}
+        </>
+      )}
+    </button>
+  );
+}
+
+/** Saves library songs, or playlist/chart items (those not on the server are downloaded there first). */
+export async function saveToDevice(items: ItemInput[]) {
+  try {
+    const { now, later } = await saveItems(items);
+    if (!now && !later) toast("이미 기기에 저장돼 있어요");
+    else if (!later) toast(`${now}곡을 기기에 저장하는 중이에요`);
+    else toast(`${now}곡 저장 시작, ${later}곡은 서버에 받은 뒤 저장돼요`);
+  } catch (e) {
+    toast((e as Error).message);
+  }
 }
 
 /**
@@ -238,9 +339,12 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
 }) {
   const p = usePlayer();
   const sheets = useSheets();
+  const off = useOffline();
+  const online = useOnline();
   const song = ytToSong(item);
   const [requested, setRequested] = useState(false);
   const active = !!song && p.current?.id === song.id;
+  const unplayable = !song || (!online && !off.has(song.id));
   const downloading = !song && (item.downloading || requested);
 
   const play = () => {
@@ -263,7 +367,7 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
   };
 
   return (
-    <div className={`row ${active ? "active" : ""} ${song ? "" : "dim"}`} onClick={play} role="button">
+    <div className={`row ${active ? "active" : ""} ${unplayable ? "dim" : ""}`} onClick={play} role="button">
       {item.rank != null && <div className="row-rank">{item.rank}</div>}
       <div className="row-cover">
         <Cover id={song ? song.id : null} src={song ? undefined : item.thumbnail} size={120} rounded="sm" />
@@ -275,7 +379,10 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
       </div>
       <div className="row-text">
         <div className="row-title">{item.title}</div>
-        <div className="row-sub">{item.artist}</div>
+        <div className="row-sub">
+          <SavedMark id={song?.id} />
+          {item.artist}
+        </div>
       </div>
       <div className="row-action">
         {song ? (
@@ -302,6 +409,11 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
                 ? [{ label: "서버에 받기", run: () => download() }]
                 : []),
             { label: "재생목록에 추가", run: () => sheets.addTo([ytToItem(item)]) },
+            ...(song
+              ? [deviceAction(off, song)]
+              : item.videoId
+                ? [{ label: "서버에 받고 기기에 저장", run: () => saveToDevice([ytToItem(item)]) }]
+                : []),
             ...extraActions,
           ])
         }

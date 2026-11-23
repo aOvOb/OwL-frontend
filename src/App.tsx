@@ -1,6 +1,9 @@
 import { Component, useEffect, useState } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router";
-import { api } from "./api";
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
+import { api, ApiError } from "./api";
+import { useOnline } from "./offline";
+
+const LAST_USER = "owl.lastUser";
 import { Loading, MiniPlayer, NowPlaying, TabBar, Toaster, toast } from "./components";
 import { AddSongsPage, MyPlaylistPage } from "./pages/Playlists";
 import { InstallBanner, InstallGuide, useGuideOpen } from "./install";
@@ -48,8 +51,31 @@ function Routed({ children }: { children: React.ReactNode }) {
   return <ErrorBoundary resetKey={pathname}>{children}</ErrorBoundary>;
 }
 
-function Shell({ onLogout }: { onLogout: () => void }) {
+/** Shown while there is no connection: only songs saved on the device play. */
+function OfflineBar({ force }: { force: boolean }) {
+  const online = useOnline();
+  const { pathname, search } = useLocation();
+  if (online && !force) return null;
+  return (
+    <div className="offline-bar" role="status">
+      <span>오프라인이에요. 기기에 저장한 곡만 재생돼요</span>
+      {!(pathname === "/library" && search.includes("tab=offline")) && <Link to="/library?tab=offline">저장한 곡</Link>}
+    </div>
+  );
+}
+
+function Shell({ onLogout, startedOffline }: { onLogout: () => void; startedOffline: boolean }) {
   const [npOpen, setNpOpen] = useState(false);
+  const nav = useNavigate();
+  // The server was unreachable at start: open on the saved songs, and reload when the connection comes back
+  // (the "online" event, so a server that is down while Wi-Fi is up does not reload in a loop).
+  useEffect(() => {
+    if (!startedOffline) return;
+    nav("/library?tab=offline", { replace: true });
+    const back = () => location.reload();
+    window.addEventListener("online", back);
+    return () => window.removeEventListener("online", back);
+  }, [startedOffline, nav]);
   useEffect(() => {
     document.body.style.overflow = npOpen ? "hidden" : "";
   }, [npOpen]);
@@ -57,6 +83,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
     <>
       <ScrollTop />
       <div className="status-cover" aria-hidden />
+      <OfflineBar force={startedOffline} />
       <main className="content">
         <Routed>
         <Routes>
@@ -88,10 +115,32 @@ function Shell({ onLogout }: { onLogout: () => void }) {
 
 export default function App() {
   const [user, setUser] = useState<string | null | undefined>(undefined);
+  const [startedOffline, setStartedOffline] = useState(false);
   const guideOpen = useGuideOpen();
 
   useEffect(() => {
-    api.me().then((m) => setUser(m.username), () => setUser(null));
+    api.me().then(
+      (m) => {
+        setUser(m.username);
+        try {
+          localStorage.setItem(LAST_USER, m.username);
+        } catch {
+          /* private mode */
+        }
+      },
+      (e) => {
+        // No connection (not "logged out"): open with the last account so saved songs still play.
+        if (e instanceof ApiError) return setUser(null);
+        let last: string | null = null;
+        try {
+          last = localStorage.getItem(LAST_USER);
+        } catch {
+          /* private mode */
+        }
+        setStartedOffline(!!last);
+        setUser(last);
+      },
+    );
     const onUnauthorized = () => setUser(null);
     window.addEventListener("owl:unauthorized", onUnauthorized);
     return () => window.removeEventListener("owl:unauthorized", onUnauthorized);
@@ -117,7 +166,7 @@ export default function App() {
       <PlayerProvider>
         <SheetProvider toast={toast}>
           <InstallBanner />
-          <Shell onLogout={logout} />
+          <Shell onLogout={logout} startedOffline={startedOffline} />
           {guide}
         </SheetProvider>
       </PlayerProvider>

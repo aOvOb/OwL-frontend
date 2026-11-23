@@ -410,3 +410,21 @@ a.pill { text-decoration: none; }
 .guide-body b { color: var(--bone); }
 .guide-svg { display: block; max-width: 340px; }
 .guide-foot { margin-top: 24px; font-size: 13px; line-height: 1.55; color: var(--muted); word-break: keep-all; }
+
+/* ---------- saved on this device (offline) ---------- */
+.saved-mark { display: inline-flex; vertical-align: -2px; margin-right: 5px; color: var(--muted); }
+.spinner.tiny { display: inline-block; width: 12px; height: 12px; border-width: 2px; vertical-align: -2px; }
+.saved-mark.spinner.tiny { margin-right: 5px; }
+.offline-head { margin: 0 20px 8px; display: flex; flex-direction: column; gap: 6px; }
+.offline-stats { font-size: 15px; }
+.offline-note { font-size: 13.5px; color: var(--muted); line-height: 1.5; word-break: keep-all; }
+.offline-note.warn { color: #f1a3a8; }
+.detail-head.compact { padding-top: 4px; }
+.sub-head { margin: 18px 20px 4px; font-size: 15px; color: var(--muted); font-weight: 600; }
+.pill.small { padding: 5px 12px; font-size: 13.5px; flex: none; }
+.pill.danger { color: #ff5f5f; }
+.pill.offline-clear { margin: 22px 20px 0; width: calc(100% - 40px); }
+.offline-foot { margin: 10px 20px 0; font-size: 12.5px; color: var(--muted); text-align: center; line-height: 1.5; word-break: keep-all; }
+.offline-bar { position: sticky; top: var(--safe-top); z-index: 22; margin: 0; padding: 8px 16px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; background: #2a1c1f; color: var(--bone); border-bottom: 1px solid rgba(234,215,191,.1); }
+.offline-bar span { flex: 1; word-break: keep-all; }
+.offline-bar a { color: var(--accent); font-weight: 600; white-space: nowrap; }

@@ -113,7 +113,7 @@ export function Page({ title, back, right, children, large = true, glass = false
     return () => window.removeEventListener("scroll", on);
   }, []);
   return (
-    <div className="page" style={tint ? ({ "--glass-tint": tint } as React.CSSProperties) : undefined}>
+    <div className={glass ? "page glass-page" : "page"} style={tint ? ({ "--glass-tint": tint } as React.CSSProperties) : undefined}>
       {/* Large-title screens: the bar scrolls away with the page. Detail pages: it stays, with a title. */}
       <header className={glass ? "topbar glass" : `topbar ${large ? "static" : "solid"} ${scrolled && !large ? "scrolled" : ""}`}>
         <div className="topbar-side">

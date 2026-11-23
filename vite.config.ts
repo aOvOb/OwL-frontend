@@ -21,6 +21,11 @@ export default defineConfig({
     },
     VitePWA({
       registerType: "autoUpdate",
+      // Own service worker (src/sw.ts): saved songs are served from the device, with byte ranges for seeking.
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectManifest: { globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"] },
       includeAssets: ["icons/apple-touch-icon.png", "icons/favicon-64.png"],
       manifest: {
         name: "OwL",
@@ -37,23 +42,6 @@ export default defineConfig({
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
           { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-        ],
-      },
-      workbox: {
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api\//],
-        globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"],
-        runtimeCaching: [
-          {
-            // Cover images: cache-first, they never change for an id.
-            urlPattern: ({ url }) => url.pathname.startsWith("/api/cover/"),
-            handler: "CacheFirst",
-            options: {
-              cacheName: "covers",
-              expiration: { maxEntries: 800, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [200] },
-            },
-          },
         ],
       },
     }),

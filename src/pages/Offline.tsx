@@ -29,7 +29,7 @@ export function OfflineSongs({ q = "" }: { q?: string }) {
     <>
       <div className="offline-head">
         <div className="offline-stats">
-          <b>{all.length}곡</b> · {use ? formatBytes(use.songs) : "…"}
+          <b>{all.length}곡</b>, {use ? formatBytes(use.songs) : "…"}
           {use?.quota ? <span className="muted"> / 사용 가능 {formatBytes(use.quota)}</span> : null}
         </div>
         {off.saving.left > 0 && (

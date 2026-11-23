@@ -39,7 +39,7 @@ export function Downloads({ q = "" }: { q?: string }) {
     ? "다운로드가 멈춰 있어요"
     : data.pausedUntil
       ? `유튜브가 봇 확인을 요구해서 쉬는 중이에요. ${time(data.pausedUntil)}에 다시 시작해요`
-      : `${data.tunnel ? "집 인터넷" : "서버 직접"}으로 받는 중 · 한 시간에 최대 ${data.ratePerHour}곡 (지난 1시간 ${data.sentLastHour}곡)`;
+      : `${data.tunnel ? "집 인터넷" : "서버 직접"}으로 받는 중, 한 시간에 최대 ${data.ratePerHour}곡 (지난 1시간 ${data.sentLastHour}곡)`;
 
   const list = (tab === "queue" ? [...data.active, ...data.queued] : tab === "retrying" ? data.retrying : data.failed).filter((s) =>
     matches(q, s.title, s.artist, s.album),
@@ -97,10 +97,10 @@ export function Downloads({ q = "" }: { q?: string }) {
                   {s.status === "sent"
                     ? "받는 중…"
                     : s.status === "queued"
-                      ? `${s.artist} · ${SOURCE[s.source]}`
+                      ? `${s.artist}, ${SOURCE[s.source]}`
                       : s.status === "retrying"
-                        ? `${s.reasonText ?? ""} · ${time(s.next_try)}에 다시 시도`
-                        : `${s.reasonText ?? ""} · ${s.attempts}번 시도`}
+                        ? `${s.reasonText ?? ""}, ${time(s.next_try)}에 다시 시도`
+                        : `${s.reasonText ?? ""}, ${s.attempts}번 시도`}
                 </div>
               </div>
               {s.status === "sent" && <span className="spinner" />}

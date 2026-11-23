@@ -173,7 +173,7 @@ export function AddSongsPage() {
             className={`chip ${suggest === "random" ? "on" : ""}`}
             onClick={() => (suggest === "random" ? setShuffleTick((n) => n + 1) : setSuggest("random"))}
           >
-            무작위{suggest === "random" ? " · 다시 섞기" : ""}
+            무작위{suggest === "random" ? ", 다시 섞기" : ""}
           </button>
         </div>
       )}
@@ -192,7 +192,7 @@ export function AddSongsPage() {
                   <div className="row-title">{r.title}</div>
                   <div className="row-sub">
                     {r.artist}
-                    {!r.songId && " · 받아서 추가"}
+                    {!r.songId && ", 받아서 추가"}
                   </div>
                 </div>
                 <button className={`icon-btn ${done ? "" : "accent"}`} disabled={done} onClick={() => add(r)} aria-label={done ? "추가됨" : "추가"}>
@@ -299,7 +299,7 @@ export function MyPlaylistPage() {
       large={false}
       right={
         <>
-          <button className="icon-btn accent" onClick={() => sheets.actions("정렬", `${SORT_LABEL[sort.key]} · ${sort.dir === "asc" ? "오름차순" : "내림차순"}`, sortActions(sort, setSort))} aria-label="정렬">
+          <button className="icon-btn accent" onClick={() => sheets.actions("정렬", `${SORT_LABEL[sort.key]}, ${sort.dir === "asc" ? "오름차순" : "내림차순"}`, sortActions(sort, setSort))} aria-label="정렬">
             <IconSort size={21} />
           </button>
           <button className="icon-btn accent" onClick={menu} aria-label="재생목록 메뉴">
@@ -323,7 +323,7 @@ export function MyPlaylistPage() {
             </button>
             <h1>{data.name}</h1>
             <p className="detail-meta">
-              {data.items.length}곡 · 재생 가능 {playable.length}곡
+              {data.items.length}곡, 재생 가능 {playable.length}곡
             </p>
             <PlayButtons songs={playable} />
             <Link to={`/my/${data.id}/add`} className="pill big ghost wide">

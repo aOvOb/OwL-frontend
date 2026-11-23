@@ -144,7 +144,7 @@ function AddTo({ items, close, toast, setState }: {
     <>
       <div className="sheet-head">
         <div className="sheet-title">재생목록에 추가</div>
-        <div className="sheet-sub">{items.length === 1 ? `${items[0].title} · ${items[0].artist}` : `${items.length}곡`}</div>
+        <div className="sheet-sub">{items.length === 1 ? `${items[0].title}, ${items[0].artist}` : `${items.length}곡`}</div>
       </div>
       <div className="sheet-group scroll">
         <button className="sheet-item new" onClick={createNew} disabled={busy}>

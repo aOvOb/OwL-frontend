@@ -62,12 +62,12 @@ export function Library() {
   );
 }
 
-/** "앱 0.8.0 (abc1234) · 서버 0.8.0 (def5678)" */
+/** "앱 0.8.0 (abc1234), 서버 0.8.0 (def5678)" */
 function VersionLine() {
   const server = useLoad(() => api.serverVersion(), []);
   return (
     <p className="version">
-      앱 {APP_VERSION} ({BUILD_ID}) · 서버 {server.data ? `${server.data.version} (${server.data.build})` : server.error ? "확인 실패" : "…"}
+      앱 {APP_VERSION} ({BUILD_ID}), 서버 {server.data ? `${server.data.version} (${server.data.build})` : server.error ? "확인 실패" : "…"}
     </p>
   );
 }
@@ -89,7 +89,7 @@ export function SortButton({ sort, setSort, keys, title }: { sort: Sort; setSort
   const sheets = useSheets();
   return (
     <button className="sort-btn" onClick={() => sheets.actions(title, undefined, sortActions(sort, setSort, keys))}>
-      <IconSort size={16} /> {SORT_LABEL[sort.key]} · {sort.dir === "asc" ? "오름차순" : "내림차순"}
+      <IconSort size={16} /> {SORT_LABEL[sort.key]}, {sort.dir === "asc" ? "오름차순" : "내림차순"}
     </button>
   );
 }
@@ -261,7 +261,7 @@ export function PlaylistPage() {
             <h1>{data.name}</h1>
             {data.comment && <p className="detail-sub">{data.comment}</p>}
             <p className="detail-meta">
-              {songs.length}곡{total ? ` · ${Math.round(total / 60)}분` : ""}
+              {songs.length}곡{total ? `, ${Math.round(total / 60)}분` : ""}
             </p>
             <PlayButtons songs={songs} />
             <DeviceSaveButton items={songs.map(songToItem)} name={data.name ?? "재생목록"} />
@@ -300,8 +300,8 @@ export function AlbumPage() {
               <p className="detail-artist">{data.artist}</p>
             )}
             <p className="detail-meta">
-              {data.year ? `${data.year} · ` : ""}
-              {songs.length}곡{data.duration ? ` · ${formatTime(data.duration)}` : ""}
+              {data.year ? `${data.year}, ` : ""}
+              {songs.length}곡{data.duration ? `, ${formatTime(data.duration)}` : ""}
             </p>
             <PlayButtons songs={songs} />
             <SaveToggle

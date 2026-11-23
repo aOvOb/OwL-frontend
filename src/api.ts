@@ -100,12 +100,12 @@ export type ChartBasis = { date: string; time?: string | null; period: string };
 
 export type Chart = { key: string; name: string; updated?: number | null; basis?: ChartBasis | null; total: number; have: number; entries: YtSong[] };
 
-/** "2026년 11월 22일 22시 기준 · 실시간" */
+/** "2026년 11월 22일 22시 기준, 실시간" */
 export const formatBasis = (b?: ChartBasis | null) => {
   if (!b?.date) return "";
   const [y, m, d] = b.date.split("-").map(Number);
   const hour = b.time ? ` ${Number(b.time.split(":")[0])}시` : "";
-  return `${y}년 ${m}월 ${d}일${hour} 기준 · ${b.period}`;
+  return `${y}년 ${m}월 ${d}일${hour} 기준, ${b.period}`;
 };
 
 /** What gets stored in an OwL playlist. title/artist are YouTube Music's names (= the file's tags). */

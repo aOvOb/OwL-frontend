@@ -5,6 +5,7 @@ import { LyricsView } from "./lyrics";
 import { removeSongs, saveItems, saveSongs, useOffline, useOnline, type OfflineView } from "./offline";
 import { useSheets, type Action } from "./sheets";
 import {
+  IconAddCircle,
   IconBack,
   IconChart,
   IconDown,
@@ -356,15 +357,12 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
   const downloading = !song && (item.downloading || requested);
   const waitingForServer = !!item.videoId && off.pending.some((x) => x.videoId === item.videoId);
 
-  // Not on the server yet: download it there, then save it to the device once it arrives.
-  const saveHere = async () => {
-    setRequested(true);
-    await saveToDevice([ytToItem(item)]);
-    if (item.videoId) onDownloaded?.(item.videoId);
-  };
 
   const play = () => {
-    if (!song) return;
+    if (!song) {
+      toast(downloading || waitingForServer ? "서버에서 받는 중이에요. 다 받으면 재생할 수 있어요" : "서버에 없는 곡이에요. ⊕를 눌러 추가하세요");
+      return;
+    }
     const i = playable.findIndex((s) => s.id === song.id);
     p.playList(playable, Math.max(0, i));
   };
@@ -374,7 +372,7 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
     setRequested(true);
     try {
       await api.download(ytToItem(item));
-      toast("다운로드 대기열에 넣었어요");
+      toast("서버에 추가했어요. 다 받으면 재생할 수 있어요");
       onDownloaded?.(item.videoId);
     } catch (err) {
       setRequested(false);
@@ -398,15 +396,15 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
         <div className="row-sub">{item.artist}</div>
       </div>
       <div className="row-action" onClick={(e) => e.stopPropagation()}>
-        {/* The arrow saves to this device. A song not on the server yet stays dim; its arrow downloads it
-            to the server first and saves it to the device once it arrives. */}
+        {/* ⊕ adds a song that is not on the server (the row stays dim until it arrives);
+            ↓ saves a song that is on the server to this device. */}
         {song ? (
           <DeviceArrow song={song} />
         ) : downloading || waitingForServer ? (
           <span className="spinner" aria-label="서버에서 받는 중" />
         ) : item.videoId ? (
-          <button className="icon-btn accent" onClick={saveHere} aria-label="기기에 저장">
-            <IconDownload size={26} />
+          <button className="icon-btn accent" onClick={download} aria-label="서버에 추가">
+            <IconAddCircle size={26} />
           </button>
         ) : null}
       </div>
@@ -419,7 +417,7 @@ export function YtRow({ item, playable, onDownloaded, extraActions = [] }: {
                   { label: "대기열 맨 뒤에 추가", run: () => (p.addToQueue(song), toast("대기열에 추가했어요")) },
                 ]
               : item.videoId && !downloading
-                ? [{ label: "서버에 받기", run: () => download() }]
+                ? [{ label: "서버에 추가", run: () => download() }]
                 : []),
             { label: "재생목록에 추가", run: () => sheets.addTo([ytToItem(item)]) },
             ...(song

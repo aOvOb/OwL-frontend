@@ -143,6 +143,13 @@ export const IconSaved = (p: P) => (
     <path d="M12 6.5v9M8 11.8l4 4 4-4" fill="none" stroke="#0c0809" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+/** Add to the server: a plus in a circle (same outline as the download arrow). */
+export const IconAddCircle = (p: P) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M12 7.5v9M7.5 12h9" />
+  </Svg>
+);
 export const IconClose = (p: P) => (
   <Svg {...p}>
     <path d="M6 6l12 12M18 6 6 18" />

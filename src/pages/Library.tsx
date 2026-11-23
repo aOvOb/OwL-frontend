@@ -8,6 +8,7 @@ import { SORT_LABEL, sortActions, sortItems, useSort, type Sort, type SortKey } 
 import { APP_VERSION, BUILD_ID } from "../version";
 import { Windowed } from "../windowed";
 import { Downloads } from "./Downloads";
+import { FilterBar, matches } from "../filter";
 import { OfflineSongs } from "./Offline";
 import { MyPlaylistsList } from "./Playlists";
 
@@ -17,7 +18,18 @@ export function Library() {
   // ?tab=offline opens a tab directly (the offline bar links there).
   const [params, setParams] = useSearchParams();
   const tab = (params.get("tab") as Tab) || "playlists";
-  const setTab = (t: Tab) => setParams(t === "playlists" ? {} : { tab: t }, { replace: true });
+  const [q, setQ] = useState("");
+  const setTab = (t: Tab) => {
+    setQ("");
+    setParams(t === "playlists" ? {} : { tab: t }, { replace: true });
+  };
+  const placeholder: Record<Tab, string> = {
+    playlists: "재생목록 찾기",
+    albums: "앨범, 아티스트 찾기",
+    artists: "아티스트 찾기",
+    offline: "저장한 곡 찾기",
+    downloads: "다운로드 목록에서 찾기",
+  };
   const tabs: [Tab, string][] = [
     ["playlists", "재생목록"],
     ["albums", "앨범"],
@@ -34,11 +46,12 @@ export function Library() {
           </button>
         ))}
       </div>
-      {tab === "playlists" && <MyPlaylistsList />}
-      {tab === "albums" && <Albums />}
-      {tab === "artists" && <Artists />}
-      {tab === "offline" && <OfflineSongs />}
-      {tab === "downloads" && <Downloads />}
+      <FilterBar value={q} onChange={setQ} placeholder={placeholder[tab]} />
+      {tab === "playlists" && <MyPlaylistsList q={q} />}
+      {tab === "albums" && <Albums q={q} />}
+      {tab === "artists" && <Artists q={q} />}
+      {tab === "offline" && <OfflineSongs q={q} />}
+      {tab === "downloads" && <Downloads q={q} />}
       <VersionLine />
     </Page>
   );
@@ -76,12 +89,16 @@ export function SortButton({ sort, setSort, keys, title }: { sort: Sort; setSort
   );
 }
 
-function Albums() {
+function Albums({ q }: { q: string }) {
   const { data, error, reload } = useSaved();
   const [sort, setSort] = useSort("saved-albums", { key: "added", dir: "desc" });
   if (error) return <ErrorBox message={error} onRetry={reload} />;
   if (!data) return <Loading />;
-  const albums = sortItems(data.albums, sort, { title: (a) => a.name, artist: (a) => a.artist ?? "", added: (a) => a.addedAt });
+  const albums = sortItems(
+    data.albums.filter((a) => matches(q, a.name, a.artist)),
+    sort,
+    { title: (a) => a.name, artist: (a) => a.artist ?? "", added: (a) => a.addedAt },
+  );
   return (
     <>
       <div className="list-tools">
@@ -90,7 +107,7 @@ function Albums() {
         </Link>
         {albums.length > 1 && <SortButton sort={sort} setSort={setSort} keys={["added", "title", "artist"]} title="앨범 정렬" />}
       </div>
-      {albums.length === 0 && <p className="empty">앨범 화면에서 "보관함에 추가"를 누르면 여기에 모여요</p>}
+      {albums.length === 0 && <p className="empty">{q ? "찾는 앨범이 없어요" : `앨범 화면에서 "보관함에 추가"를 누르면 여기에 모여요`}</p>}
       <div className="grid pad">
         <Windowed items={albums} keyOf={(a) => a.id} step={40}>
           {(a) => (
@@ -106,12 +123,16 @@ function Albums() {
   );
 }
 
-function Artists() {
+function Artists({ q }: { q: string }) {
   const { data, error, reload } = useSaved();
   const [sort, setSort] = useSort("saved-artists", { key: "added", dir: "desc" });
   if (error) return <ErrorBox message={error} onRetry={reload} />;
   if (!data) return <Loading />;
-  const artists = sortItems(data.artists, sort, { title: (a) => a.name, artist: (a) => a.name, added: (a) => a.addedAt });
+  const artists = sortItems(
+    data.artists.filter((a) => matches(q, a.name)),
+    sort,
+    { title: (a) => a.name, artist: (a) => a.name, added: (a) => a.addedAt },
+  );
   return (
     <>
       <div className="list-tools">
@@ -120,7 +141,7 @@ function Artists() {
         </Link>
         {artists.length > 1 && <SortButton sort={sort} setSort={setSort} keys={["added", "title"]} title="아티스트 정렬" />}
       </div>
-      {artists.length === 0 && <p className="empty">아티스트 화면에서 "보관함에 추가"를 누르면 여기에 모여요</p>}
+      {artists.length === 0 && <p className="empty">{q ? "찾는 아티스트가 없어요" : `아티스트 화면에서 "보관함에 추가"를 누르면 여기에 모여요`}</p>}
       <div className="list">
         <Windowed items={artists} keyOf={(a) => a.id}>
           {(a) => (

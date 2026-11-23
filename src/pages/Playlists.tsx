@@ -5,6 +5,7 @@ import { Cover, DeviceSaveButton, ErrorBox, Loading, Page, PlayButtons, useLoad,
 import { IconCheck, IconChevron, IconDownload, IconMore, IconPlus, IconSearch, IconSort } from "../icons";
 import { PlaylistThumb, useSheets } from "../sheets";
 import { SORT_LABEL, sortActions, sortItems, useSort } from "../sort";
+import { matches } from "../filter";
 import { Windowed } from "../windowed";
 
 /** Reloads when any screen adds to or changes a playlist. */
@@ -37,15 +38,17 @@ export function NewPlaylistRow() {
   );
 }
 
-export function MyPlaylistsList() {
+export function MyPlaylistsList({ q = "" }: { q?: string }) {
   const { data, error, reload } = useLoad(() => api.myPlaylists(), []);
   usePlaylistsChanged(reload);
   if (error) return <ErrorBox message={error} onRetry={reload} />;
   if (!data) return <Loading />;
+  const shown = data.filter((pl) => matches(q, pl.name));
   return (
     <div className="list">
-      <NewPlaylistRow />
-      {data.map((pl) => (
+      {!q && <NewPlaylistRow />}
+      {q && shown.length === 0 && <p className="empty small">찾는 재생목록이 없어요</p>}
+      {shown.map((pl) => (
         <Link key={pl.id} to={`/my/${pl.id}`} className="row">
           <PlaylistThumb pl={pl} />
           <div className="row-text">

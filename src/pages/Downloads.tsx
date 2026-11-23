@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type QueuedSong } from "../api";
 import { ErrorBox, Loading, useLoad } from "../components";
+import { matches } from "../filter";
 import { useSheets } from "../sheets";
 import { Windowed } from "../windowed";
 
@@ -11,7 +12,7 @@ const time = (epoch?: number | null) =>
 type Tab = "queue" | "retrying" | "failed";
 
 /** The server's download queue: what is downloading, waiting, retrying later, and failed (DLQ). */
-export function Downloads() {
+export function Downloads({ q = "" }: { q?: string }) {
   const sheets = useSheets();
   const { data, error, reload } = useLoad(() => api.downloads(), []);
   const [tab, setTab] = useState<Tab>("queue");
@@ -40,7 +41,9 @@ export function Downloads() {
       ? `유튜브가 봇 확인을 요구해서 쉬는 중이에요. ${time(data.pausedUntil)}에 다시 시작해요`
       : `${data.tunnel ? "집 인터넷" : "서버 직접"}으로 받는 중 · 한 시간에 최대 ${data.ratePerHour}곡 (지난 1시간 ${data.sentLastHour}곡)`;
 
-  const list = tab === "queue" ? [...data.active, ...data.queued] : tab === "retrying" ? data.retrying : data.failed;
+  const list = (tab === "queue" ? [...data.active, ...data.queued] : tab === "retrying" ? data.retrying : data.failed).filter((s) =>
+    matches(q, s.title, s.artist, s.album),
+  );
 
   const menu = (s: QueuedSong) =>
     sheets.actions(s.title || s.videoId, s.artist, [
@@ -79,7 +82,7 @@ export function Downloads() {
         </div>
       )}
       {list.length === 0 && (
-        <p className="empty">{tab === "queue" ? "대기 중인 곡이 없어요" : tab === "retrying" ? "재시도할 곡이 없어요" : "실패한 곡이 없어요"}</p>
+        <p className="empty">{q ? "찾는 곡이 없어요" : tab === "queue" ? "대기 중인 곡이 없어요" : tab === "retrying" ? "재시도할 곡이 없어요" : "실패한 곡이 없어요"}</p>
       )}
       <div className="list">
         <Windowed items={list} keyOf={(s) => s.videoId}>

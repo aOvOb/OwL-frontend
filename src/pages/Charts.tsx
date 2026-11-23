@@ -14,6 +14,9 @@ export const CHART_STYLE = [
   { key: "yt_us", prefix: "YouTube 미국", brand: "YouTube", label: "미국 TOP 100", bg: "linear-gradient(140deg,#b3262e,#2a0a0c)", shade: "linear-gradient(180deg,rgba(42,10,12,0) 20%,rgba(42,10,12,.94) 78%)" },
 ];
 
+/** How many chart songs the server has ready to play: "98/100곡 준비됨", or "100곡 모두 준비됨". */
+const readyText = (have: number, total: number) => (total > 0 && have >= total ? `${total}곡 모두 준비됨` : `${have}/${total}곡 준비됨`);
+
 /** Cover art for a chart entry: our copy if downloaded, else YouTube Music's image at the wanted size. */
 export const entryArt = (e: YtSong, size = 300) =>
   e.songId
@@ -189,7 +192,7 @@ export function ChartsIndex() {
                   <div className="chart-banner-name">{s.label}</div>
                   <div className="chart-basis">{formatBasis(c.basis)}</div>
                   <div className="chart-tile-count">
-                    서버에서 {c.have}/{c.total}곡 듣기 가능
+                    {readyText(c.have, c.total)}
                   </div>
                 </div>
                 <div className="chart-fan" aria-hidden>
@@ -257,7 +260,7 @@ export function ChartPage() {
           <>
             <div className="chart-basis">{formatBasis(chart.basis)}</div>
             <div className="chart-tile-count">
-              서버에서 {playable.length}/{chart.entries.length}곡 듣기 가능
+              {readyText(playable.length, chart.entries.length)}
             </div>
           </>
         )}

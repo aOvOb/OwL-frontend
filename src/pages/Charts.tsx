@@ -11,6 +11,7 @@ export const CHART_STYLE = [
   { key: "yt_kr", prefix: "YouTube 한국", brand: "YouTube", label: "한국 TOP 100", bg: "linear-gradient(140deg,#e0262f,#5e0c10)", shade: "linear-gradient(180deg,rgba(94,12,16,0) 20%,rgba(94,12,16,.92) 78%)" },
   { key: "apple_kr", prefix: "Apple Music", brand: "Apple Music", label: "한국 TOP 100", bg: "linear-gradient(140deg,#fa2d55,#7a1030)", shade: "linear-gradient(180deg,rgba(122,16,48,0) 20%,rgba(122,16,48,.92) 78%)" },
   { key: "billboard", prefix: "Billboard", brand: "Billboard", label: "Hot 100", bg: "linear-gradient(140deg,#3a3a3c,#111113)", shade: "linear-gradient(180deg,rgba(17,17,19,0) 20%,rgba(17,17,19,.94) 78%)" },
+  { key: "billboard_global", prefix: "Billboard", brand: "Billboard", label: "Global 200", bg: "linear-gradient(140deg,#2b3a67,#0d1226)", shade: "linear-gradient(180deg,rgba(13,18,38,0) 20%,rgba(13,18,38,.94) 78%)" },
   { key: "yt_us", prefix: "YouTube 미국", brand: "YouTube", label: "미국 TOP 100", bg: "linear-gradient(140deg,#b3262e,#2a0a0c)", shade: "linear-gradient(180deg,rgba(42,10,12,0) 20%,rgba(42,10,12,.94) 78%)" },
 ];
 

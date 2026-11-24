@@ -16,6 +16,11 @@ export function Downloads({ q = "" }: { q?: string }) {
   const sheets = useSheets();
   const { data, error, reload } = useLoad(() => api.downloads(), []);
   const [tab, setTab] = useState<Tab>("queue");
+  // The queue is shared by every account: only an admin may clear a whole list (the server checks too).
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    api.me().then((m) => setAdmin(!!m.admin), () => setAdmin(false));
+  }, []);
 
   useEffect(() => {
     const t = setInterval(reload, 15000);
@@ -46,7 +51,7 @@ export function Downloads({ q = "" }: { q?: string }) {
   );
 
   // Songs in this tab that can be taken off the list (the one being downloaded right now stays).
-  const clearable = list.filter((s) => s.status !== "sent");
+  const clearable = admin ? list.filter((s) => s.status !== "sent") : [];
   const tabName = tab === "queue" ? "대기열" : tab === "retrying" ? "재시도 예정 목록" : "실패 목록";
   const clearAll = () =>
     sheets.actions(`${tabName}을 비울까요?`, `${clearable.length}곡을 목록에서 빼요. 차트 곡은 다음 차트 갱신 때 다시 들어올 수 있어요.`, [

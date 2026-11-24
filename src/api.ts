@@ -165,7 +165,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 const enc = encodeURIComponent;
 
 export const api = {
-  me: () => request<{ username: string }>("/me"),
+  /** admin: a server admin account (may clear whole download lists). */
+  me: () => request<{ username: string; admin?: boolean }>("/me"),
   login: (username: string, password: string) =>
     request<{ username: string }>("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) }),
   logout: () => request<void>("/auth/logout", { method: "POST" }),

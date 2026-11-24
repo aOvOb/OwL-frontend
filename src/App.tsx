@@ -14,6 +14,7 @@ import { AlbumPage, AllAlbumsPage, AllArtistsPage, ArtistPage, Library, Playlist
 import Login from "./pages/Login";
 import Search from "./pages/Search";
 import { PlayerProvider } from "./player";
+import { DeskMini, useDeskMini } from "./desk";
 
 function ScrollTop() {
   const { pathname } = useLocation();
@@ -79,8 +80,12 @@ function Shell({ onLogout, startedOffline }: { onLogout: () => void; startedOffl
   useEffect(() => {
     document.body.style.overflow = npOpen ? "hidden" : "";
   }, [npOpen]);
+  // Narrow window on a computer: the mini player covers the app (which stays mounted, so the page and
+  // scroll position are still there when the window is made wide again).
+  const mini = useDeskMini();
   return (
     <>
+      {mini && <DeskMini />}
       <ScrollTop />
       <div className="status-cover" aria-hidden />
       <OfflineBar force={startedOffline} />

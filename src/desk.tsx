@@ -27,12 +27,87 @@ export function useDeskMini() {
   return mini;
 }
 
+// ---------- floating mini player window (Chrome's Document Picture-in-Picture) ----------
+// An installed app window cannot be made smaller than the browser's minimum, so the mini player can
+// also open in its own small always-on-top window, which can be as small as a bar. The music keeps
+// playing in the app window; the small window only shows and controls it.
+type DocPip = { requestWindow: (o: { width: number; height: number }) => Promise<Window>; window: Window | null };
+const docPip = () => (window as unknown as { documentPictureInPicture?: DocPip }).documentPictureInPicture;
+
+/** Whether this browser can open the floating mini player (computers with Chrome or Edge). */
+export const canFloat = () => !!docPip() && window.matchMedia(DESKTOP).matches;
+
+let pipWin: Window | null = null;
+const pipListeners = new Set<() => void>();
+const setPip = (w: Window | null) => {
+  pipWin = w;
+  pipListeners.forEach((f) => f());
+};
+
+/** Opens the floating mini player (must be called from a click). */
+export async function openFloating() {
+  const api = docPip();
+  if (!api) return;
+  if (pipWin) return pipWin.focus();
+  const w = await api.requestWindow({ width: 320, height: 120 });
+  // The small window starts empty: give it the app's styles (absolute URLs, its own address is about:blank).
+  for (const el of document.head.querySelectorAll("style, link[rel=stylesheet]")) {
+    if (el instanceof HTMLLinkElement) {
+      const l = w.document.createElement("link");
+      l.rel = "stylesheet";
+      l.href = el.href;
+      w.document.head.append(l);
+    } else w.document.head.append(el.cloneNode(true));
+  }
+  w.document.title = "OwL";
+  w.document.body.className = "pip-body";
+  w.addEventListener("pagehide", () => setPip(null));
+  setPip(w);
+}
+
+/** The open floating window, or null. */
+export function useFloating() {
+  const [w, setW] = useState<Window | null>(pipWin);
+  useEffect(() => {
+    const on = () => setW(pipWin);
+    pipListeners.add(on);
+    return () => void pipListeners.delete(on);
+  }, []);
+  return w;
+}
+
 const clock = (s: number) => {
   if (!isFinite(s) || s < 0) s = 0;
   return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 };
 
-export function DeskMini() {
+/** Icon: a small window popping out of a big one. */
+export const IconFloat = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="3" y="4" width="18" height="15" rx="2.5" />
+    <rect x="11.5" y="11" width="7.5" height="6" rx="1.2" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** Button that opens the floating mini player (shown only where the browser supports it). */
+export function FloatButton({ className = "icon-btn" }: { className?: string }) {
+  if (!canFloat()) return null;
+  return (
+    <button
+      className={className}
+      onClick={(e) => {
+        e.stopPropagation();
+        openFloating().catch(() => {});
+      }}
+      aria-label="작은 창으로 띄우기"
+      title="작은 창으로 띄우기"
+    >
+      <IconFloat />
+    </button>
+  );
+}
+
+export function DeskMini({ floating = false }: { floating?: boolean }) {
   const p = usePlayer();
   const s = p.current;
   const art = s ? coverUrl(s.coverArt ?? s.id, 512) : undefined;
@@ -84,6 +159,7 @@ export function DeskMini() {
 
   return (
     <div className="desk-mini-root">
+      {!floating && <FloatButton className="dm-float" />}
       {/* short window: bar */}
       <div className="dm-mode dm-bar-mode">
         {art && <img className="dm-bg" src={art} alt="" aria-hidden />}

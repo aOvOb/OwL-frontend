@@ -14,7 +14,8 @@ import { AlbumPage, AllAlbumsPage, AllArtistsPage, ArtistPage, Library, Playlist
 import Login from "./pages/Login";
 import Search from "./pages/Search";
 import { PlayerProvider } from "./player";
-import { DeskMini, useDeskMini } from "./desk";
+import { DeskMini, useDeskMini, useFloating } from "./desk";
+import { createPortal } from "react-dom";
 
 function ScrollTop() {
   const { pathname } = useLocation();
@@ -83,9 +84,11 @@ function Shell({ onLogout, startedOffline }: { onLogout: () => void; startedOffl
   // Narrow window on a computer: the mini player covers the app (which stays mounted, so the page and
   // scroll position are still there when the window is made wide again).
   const mini = useDeskMini();
+  const floating = useFloating();
   return (
     <>
       {mini && <DeskMini />}
+      {floating && createPortal(<DeskMini floating />, floating.document.body)}
       <ScrollTop />
       <div className="status-cover" aria-hidden />
       <OfflineBar force={startedOffline} />

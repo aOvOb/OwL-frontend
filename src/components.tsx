@@ -26,6 +26,7 @@ import {
   IconShuffle,
 } from "./icons";
 import { usePlayer } from "./player";
+import { FloatButton } from "./desk";
 
 // ---------- data loading ----------
 
@@ -490,6 +491,7 @@ export function MiniPlayer({ onOpen }: { onOpen: () => void }) {
       >
         <IconNext size={26} />
       </button>
+      <FloatButton />
       <div className="mini-progress" style={{ width: `${pct}%` }} />
     </div>
   );

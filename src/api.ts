@@ -58,7 +58,21 @@ export type YtSong = {
 };
 
 /** Lyrics saved with the song. Synced lines have a start time in seconds. */
-export type Lyrics = { synced: boolean; lines: { t: number | null; text: string }[] };
+/** A song file on the server, as the admin song manager lists it. */
+export type AdminSong = {
+  id: string;
+  title: string;
+  artist: string;
+  album?: string | null;
+  duration?: number | null;
+  size?: number | null;
+  added?: string | null;
+  path: string;
+  inPlaylist: boolean;
+  coverArt: string;
+};
+
+export type Lyrics ={ synced: boolean; lines: { t: number | null; text: string }[] };
 
 /** One song in the server's download queue. */
 export type QueuedSong = {
@@ -207,6 +221,13 @@ export const api = {
     request<{ count: number }>("/downloads/retry", { method: "POST", body: JSON.stringify({ videoIds: videoIds ?? null }) }),
   dropDownloads: (videoIds: string[]) =>
     request<{ count: number }>("/downloads/drop", { method: "POST", body: JSON.stringify({ videoIds }) }),
+  // Song management (admins only; the server checks).
+  adminSongs: (q: string, offset = 0) =>
+    request<{ total: number; songs: AdminSong[] }>(`/admin/songs?${new URLSearchParams({ q, offset: String(offset) })}`),
+  adminEditSong: (id: string, tags: { title?: string; artist?: string; album?: string }) =>
+    request<{ id: string; changed: Record<string, string> }>(`/admin/songs/${enc(id)}`, { method: "PATCH", body: JSON.stringify(tags) }),
+  adminDeleteSong: (id: string, force = false) =>
+    request<{ id: string; deleted: boolean; inPlaylist?: boolean }>(`/admin/songs/${enc(id)}?force=${force}`, { method: "DELETE" }),
   myLibrary: () => request<SavedLibrary>("/my/library"),
   saveAlbum: (a: Album) =>
     request<SavedLibrary>(`/my/library/albums/${enc(a.id)}`, {

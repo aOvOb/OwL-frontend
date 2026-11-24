@@ -57,8 +57,25 @@ export function Library() {
       {tab === "artists" && <Artists q={q} />}
       {tab === "offline" && <OfflineSongs q={q} />}
       {tab === "downloads" && <Downloads q={q} />}
+      <AdminLink />
       <VersionLine />
     </Page>
+  );
+}
+
+/** Entry to the song manager, for admin accounts only (the server checks too). */
+function AdminLink() {
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    api.me().then((m) => setAdmin(!!m.admin), () => setAdmin(false));
+  }, []);
+  if (!admin) return null;
+  return (
+    <div className="play-row">
+      <Link className="pill big ghost" to="/admin/songs">
+        곡 관리 (관리자)
+      </Link>
+    </div>
   );
 }
 

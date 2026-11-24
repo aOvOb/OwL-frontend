@@ -509,6 +509,9 @@ a.pill { text-decoration: none; }
 .offline-bar span { flex: 1; word-break: keep-all; }
 .offline-bar a { color: var(--accent); font-weight: 600; white-space: nowrap; }
 
+/* Admin song manager (pages/Admin.tsx) */
+.admin-count { margin: 4px 20px 8px; font-size: 13px; color: var(--muted); }
+
 /* ---------- PC mini player (desk.tsx): a narrow computer window becomes a small player ---------- */
 /* The app stays mounted underneath; the page does not scroll behind the player. */
 body.desk-mini { overflow: hidden; }

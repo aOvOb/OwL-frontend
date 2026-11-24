@@ -45,6 +45,14 @@ export function Downloads({ q = "" }: { q?: string }) {
     matches(q, s.title, s.artist, s.album),
   );
 
+  // Songs in this tab that can be taken off the list (the one being downloaded right now stays).
+  const clearable = list.filter((s) => s.status !== "sent");
+  const tabName = tab === "queue" ? "대기열" : tab === "retrying" ? "재시도 예정 목록" : "실패 목록";
+  const clearAll = () =>
+    sheets.actions(`${tabName}을 비울까요?`, `${clearable.length}곡을 목록에서 빼요. 차트 곡은 다음 차트 갱신 때 다시 들어올 수 있어요.`, [
+      { label: `${clearable.length}곡 모두 빼기`, danger: true, run: () => run(api.dropDownloads(clearable.map((s) => s.videoId)), (n) => `${n}곡을 뺐어요`) },
+    ]);
+
   const menu = (s: QueuedSong) =>
     sheets.actions(s.title || s.videoId, s.artist, [
       ...(s.status === "failed" || s.status === "retrying"
@@ -74,13 +82,20 @@ export function Downloads({ q = "" }: { q?: string }) {
           실패
         </button>
       </div>
-      {tab === "failed" && data.failed.length > 0 && (
+      {(tab === "failed" && data.failed.length > 0) || clearable.length > 0 ? (
         <div className="play-row">
-          <button className="pill big ghost" onClick={() => run(api.retryDownloads(), (n) => `${n}곡을 대기열에 다시 넣었어요`)}>
-            실패한 곡 모두 다시 시도
-          </button>
+          {tab === "failed" && data.failed.length > 0 && (
+            <button className="pill big ghost" onClick={() => run(api.retryDownloads(), (n) => `${n}곡을 대기열에 다시 넣었어요`)}>
+              모두 다시 시도
+            </button>
+          )}
+          {clearable.length > 0 && (
+            <button className="pill big ghost" onClick={clearAll}>
+              모두 비우기
+            </button>
+          )}
         </div>
-      )}
+      ) : null}
       {list.length === 0 && (
         <p className="empty">{q ? "찾는 곡이 없어요" : tab === "queue" ? "대기 중인 곡이 없어요" : tab === "retrying" ? "재시도할 곡이 없어요" : "실패한 곡이 없어요"}</p>
       )}

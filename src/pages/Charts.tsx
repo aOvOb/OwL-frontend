@@ -240,6 +240,18 @@ export function ChartPage() {
     [chart],
   );
   const missing = (chart?.entries ?? []).filter((e) => !e.songId && !e.downloading && e.videoId).map(ytToItem);
+  // Why the rest is not ready: "12곡 받는 중, 1곡 받을 수 있음, 1곡 유튜브에서 못 찾음".
+  const notReady = (chart?.entries ?? []).filter((e) => !e.songId);
+  const breakdown = [
+    [notReady.filter((e) => e.downloading && e.dl !== "retrying").length, "받는 중"],
+    [notReady.filter((e) => e.dl === "retrying").length, "다시 받기 대기"],
+    [notReady.filter((e) => e.videoId && !e.downloading && e.dl !== "failed").length, "받을 수 있음"],
+    [notReady.filter((e) => e.videoId && e.dl === "failed").length, "받기 실패"],
+    [notReady.filter((e) => !e.videoId).length, "유튜브에서 못 찾음"],
+  ]
+    .filter(([n]) => n)
+    .map(([n, what]) => `${n}곡 ${what}`)
+    .join(", ");
 
   const downloadAll = async () => {
     setBusy(true);
@@ -277,7 +289,11 @@ export function ChartPage() {
               <IconPlus size={22} />
             </button>
           </div>
-          <p className="cover-desc"><b>{readyText(playable.length, chart.entries.length)}</b> 서버에 없는 곡은 흐리게 보이고, 받으면 바로 들을 수 있어요.</p>
+          <p className="cover-desc">
+            <b>{readyText(playable.length, chart.entries.length)}</b>
+            {breakdown && <span className="cover-breakdown">{breakdown}</span>}
+            서버에 없는 곡은 흐리게 보이고, 받으면 바로 들을 수 있어요.
+          </p>
           {missing.length > 0 && (
             <button className="pill big ghost cover-more" onClick={downloadAll} disabled={busy}>
               <IconDownload size={18} /> 나머지 {missing.length}곡 받기

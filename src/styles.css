@@ -122,6 +122,7 @@ body:has(.topbar.glass) .status-cover { display: none; }
 /* "N곡 준비됨": centred, small, with room above and below (not glued to the buttons or the list). */
 .cover-desc { margin: 24px 32px 22px; font-size: 13px; line-height: 1.5; text-align: center; color: rgba(255,255,255,.62); word-break: keep-all; text-wrap: balance; }
 .cover-desc b { display: block; margin-bottom: 2px; font-size: 14px; color: #fff; font-weight: 600; }
+.cover-breakdown { display: block; margin-bottom: 6px; color: rgba(255,255,255,.85); }
 .cover-more { display: flex; margin: 0 20px 18px; width: calc(100% - 40px); }
 /* body paints its own background above negative z-index layers; let the glow show through. */
 body:has(.page-glow) { background: transparent; }

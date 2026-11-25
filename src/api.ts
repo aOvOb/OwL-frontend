@@ -52,6 +52,8 @@ export type YtSong = {
   thumbnail?: string | null;
   songId?: string | null;
   downloading?: boolean;
+  /** The server's download queue state: queued, sent, retrying, failed, done (charts only). */
+  dl?: string | null;
   rank?: number;
   ytTitle?: string | null;
   ytArtist?: string | null;

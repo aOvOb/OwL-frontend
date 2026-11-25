@@ -234,7 +234,8 @@ body:has(.page-glow) { background: transparent; }
 .row.static { cursor: default; }
 .row:active { background: rgba(255,255,255,.04); }
 .row.active .row-title { color: var(--accent); }
-.row.dim .row-cover { opacity: .55; }
+.row.dim .row-cover { opacity: .3; filter: grayscale(1); }
+.row.dim .row-text, .row.dim .row-rank { opacity: .4; }
 .row-cover { position: relative; width: 48px; height: 48px; flex: none; }
 .row-cover.big { width: 60px; height: 60px; }
 .row-cover .cover { width: 100%; height: 100%; }

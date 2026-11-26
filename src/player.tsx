@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { coverUrl, streamUrl, type Song } from "./api";
 import { canPlayNow } from "./offline";
+import { artistKey, balancedShuffle } from "./shuffle";
 
 type Repeat = "off" | "all" | "one";
 
@@ -33,15 +34,6 @@ export const usePlayer = () => {
   return v;
 };
 
-const shuffled = <T,>(arr: T[]) => {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-};
-
 /**
  * One <audio> element for the whole app. On iOS, keeping a single element and swapping its src
  * on "ended" is what keeps playback going in the background and on the lock screen.
@@ -59,8 +51,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const retried = useRef<string | null>(null);
 
   const current = index >= 0 && index < queue.length ? queue[index] : null;
-  const stateRef = useRef({ queue, index, repeat });
-  stateRef.current = { queue, index, repeat };
+  const stateRef = useRef({ queue, index, repeat, shuffle });
+  stateRef.current = { queue, index, repeat, shuffle };
 
   if (!audioRef.current && typeof Audio !== "undefined") {
     const a = new Audio();
@@ -95,9 +87,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   };
 
   const next = useCallback(() => {
-    const { queue: q, index: i, repeat: r } = stateRef.current;
+    const { queue: q, index: i, repeat: r, shuffle: sh } = stateRef.current;
     let k = nextPlayable(q, i + 1, 1);
-    if (k < 0 && r === "all") k = nextPlayable(q, 0, 1);
+    if (k < 0 && r === "all") {
+      // Shuffle on: each new round is shuffled again, not the same order once more.
+      if (sh && q.length > 1) {
+        const nq = balancedShuffle(q, q[i] ? artistKey(q[i]) : undefined);
+        setQueue(nq);
+        stateRef.current = { ...stateRef.current, queue: nq };
+        k = nextPlayable(nq, 0, 1);
+      } else k = nextPlayable(q, 0, 1);
+    }
     if (k >= 0) go(k);
     else audioRef.current?.pause();
   }, [go]);
@@ -191,7 +191,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       let i = start;
       const sh = opts?.shuffle ?? false;
       if (sh) {
-        q = shuffled(songs);
+        q = balancedShuffle(songs);
         i = 0;
       }
       if (!canPlayNow(q[i].id)) {
@@ -215,7 +215,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     if (!cur) return setShuffleState(on);
     if (on) {
       original.current = q;
-      const rest = shuffled(q.filter((_, k) => k !== i));
+      const rest = balancedShuffle(q.filter((_, k) => k !== i), artistKey(cur));
       const nq = [cur, ...rest];
       setQueue(nq);
       setIndex(0);

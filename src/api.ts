@@ -200,7 +200,7 @@ export const api = {
   /** top=N: only the first N songs per chart (home, chart list); total/have always cover the whole chart. */
   charts: (key?: string, top?: number) =>
     request<Chart[]>(`/charts?${new URLSearchParams({ ...(key ? { key } : {}), ...(top ? { top: String(top) } : {}) })}`),
-  ytSearch: (q: string) => request<YtSong[]>(`/yt/search?q=${enc(q)}`),
+  ytSearch: (q: string, page = 0) => request<YtSong[]>(`/yt/search?q=${enc(q)}${page ? `&page=${page}` : ""}`),
   /** Queues one song on the server (title/artist let the queue recognize it once downloaded). */
   download: (item: ItemInput) =>
     request<{ queued: number }>("/yt/download", {

@@ -63,7 +63,7 @@ export function Library() {
   );
 }
 
-/** Entries to the song manager and user activity, for admin accounts only (the server checks too). */
+/** Entry to the admin page (server state, user activity, songs), for admin accounts only (the server checks too). */
 function AdminLink() {
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -72,11 +72,8 @@ function AdminLink() {
   if (!admin) return null;
   return (
     <div className="play-row">
-      <Link className="pill big ghost" to="/admin/songs">
-        곡 관리 (관리자)
-      </Link>
-      <Link className="pill big ghost" to="/admin/activity">
-        사용자 활동 (관리자)
+      <Link className="pill big ghost" to="/admin">
+        관리 (관리자)
       </Link>
     </div>
   );

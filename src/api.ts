@@ -61,6 +61,23 @@ export type YtSong = {
 
 /** Lyrics saved with the song. Synced lines have a start time in seconds. */
 /** A song file on the server, as the admin song manager lists it. */
+export type AdminStatus = {
+  /** Written by the server once a minute (ops/owl-status); null when missing. Times in epoch seconds. */
+  host: {
+    t: number;
+    uptime_s: number;
+    load: number[];
+    cpus: number;
+    memory: { total: number; available: number };
+    disk: { total: number; used: number; free: number };
+    containers: { name: string; state: string; status: string; image: string }[];
+    backup: { last: number | null; size: number | null; result: string | null };
+    cost: { checked: string | null; month_cost: number | null; threshold: number | null; error: string | null } | null;
+  } | null;
+  downloads: Pick<DownloadQueue, "counts" | "pausedUntil" | "pausedManually" | "tunnel"> | null;
+  backend: { version: string; build: string };
+};
+
 export type ActivityEvent = {
   t: number;
   user: string;
@@ -249,6 +266,7 @@ export const api = {
   dropDownloads: (videoIds: string[]) =>
     request<{ count: number }>("/downloads/drop", { method: "POST", body: JSON.stringify({ videoIds }) }),
   // Song management (admins only; the server checks).
+  adminStatus: () => request<AdminStatus>("/admin/status"),
   adminActivity: (days: number) => request<ActivitySummary>(`/admin/activity?days=${days}`),
   adminSongs: (q: string, offset = 0) =>
     request<{ total: number; songs: AdminSong[] }>(`/admin/songs?${new URLSearchParams({ q, offset: String(offset) })}`),

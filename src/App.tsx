@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import Search from "./pages/Search";
 import { AdminActivityPage } from "./pages/Activity";
 import { AdminSongsPage } from "./pages/Admin";
+import { AdminPage } from "./pages/AdminHome";
 import { PlayerProvider } from "./player";
 import { DeskMini, useDeskMini, useFloating } from "./desk";
 import { createPortal } from "react-dom";
@@ -109,6 +110,7 @@ function Shell({ onLogout, startedOffline }: { onLogout: () => void; startedOffl
           <Route path="/artists/all" element={<AllArtistsPage />} />
           <Route path="/my/:id" element={<MyPlaylistPage />} />
           <Route path="/my/:id/add" element={<AddSongsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/songs" element={<AdminSongsPage />} />
           <Route path="/admin/activity" element={<AdminActivityPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -9,6 +9,7 @@ declare const process: { env: Record<string, string | undefined> }; // Node glob
 // tell that a newer version is on the server.
 const BUILD_ID = (process.env.GITHUB_SHA ?? "").slice(0, 7) || `dev-${Date.now()}`;
 
+// The music app. The admin app is built and deployed on its own: vite.admin.config.ts.
 export default defineConfig({
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID), __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
@@ -25,8 +26,7 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      // The admin app (admin.html, its own domain) is not part of the music app's offline files.
-      injectManifest: { globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"], globIgnores: ["admin.html", "**/admin-*.js"] },
+      injectManifest: { globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"] },
       includeAssets: ["icons/apple-touch-icon.png", "icons/favicon-64.png"],
       manifest: {
         name: "OwL",
@@ -47,8 +47,6 @@ export default defineConfig({
       },
     }),
   ],
-  // Two pages: the music app (index.html) and the admin app (admin.html, served on the admin domain).
-  build: { rollupOptions: { input: { main: "index.html", admin: "admin.html" } } },
   server: {
     // Local development against the real server: `npm run dev`, then log in.
     proxy: {

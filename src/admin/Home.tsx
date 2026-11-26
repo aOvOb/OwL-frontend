@@ -250,7 +250,7 @@ export function AdminPage() {
           <h2 className="adm-h">버전</h2>
           <div className="adm-card adm-rows">
             <div className="adm-row">
-              <span>앱</span>
+              <span>관리 화면</span>
               <span className="adm-val">
                 {APP_VERSION} ({BUILD_ID.slice(0, 7)})
               </span>

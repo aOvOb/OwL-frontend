@@ -16,3 +16,4 @@ dev-dist/
 Thumbs.db
 .idea/
 .vscode/
+dist-admin

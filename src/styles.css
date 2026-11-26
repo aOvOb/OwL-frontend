@@ -511,8 +511,6 @@ a.pill { text-decoration: none; }
 .offline-bar span { flex: 1; word-break: keep-all; }
 .offline-bar a { color: var(--accent); font-weight: 600; white-space: nowrap; }
 
-/* Admin song manager (pages/Admin.tsx) */
-.admin-count { margin: 4px 20px 8px; font-size: 13px; color: var(--muted); }
 
 /* ---------- PC mini player (desk.tsx): a narrow computer window becomes a small player ---------- */
 /* The app stays mounted underneath; the page does not scroll behind the player. */
@@ -577,63 +575,3 @@ body.desk-mini .install { display: none; }
 .desk-mini-root:hover .dm-float, .dm-float:focus-visible { opacity: 1; }
 /* the floating window (Document Picture-in-Picture) holds only the mini player */
 .pip-body { margin: 0; background: var(--bg); overflow: hidden; }
-
-/* ---------- admin: user activity ---------- */
-.act-card { margin: 0 20px 12px; padding: 14px 16px; border-radius: 14px; background: var(--bg-elev); border: .5px solid var(--line); cursor: pointer; }
-.act-head { display: flex; align-items: center; gap: 8px; }
-.act-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); opacity: .5; flex: none; }
-.act-dot.on { background: #3ecf6e; opacity: 1; box-shadow: 0 0 6px #3ecf6e; }
-.act-name { font-size: 17px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.act-seen { font-size: 13px; color: var(--muted); }
-.act-now { margin-top: 6px; font-size: 14px; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.act-stats { display: flex; gap: 14px; margin-top: 8px; font-size: 13.5px; color: var(--muted); flex-wrap: wrap; }
-.act-stats b { color: var(--text); font-weight: 700; }
-.act-bars { display: flex; align-items: flex-end; gap: 2px; height: 36px; margin-top: 10px; }
-.act-bars span { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; opacity: .85; }
-.act-bars span.zero { background: var(--line); opacity: 1; }
-.act-artists { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.act-artists span { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; background: var(--bg-elev2); color: var(--text); }
-.act-recent { list-style: none; margin: 12px 0 0; padding: 10px 0 0; border-top: .5px solid var(--line); display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; cursor: default; }
-.act-recent li { display: flex; gap: 10px; min-width: 0; }
-.act-recent li > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.act-time { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
-
-/* ---------- admin home ---------- */
-.adm-links { margin: 0 20px 8px; border-radius: 14px; background: var(--bg-elev); border: .5px solid var(--line); overflow: hidden; }
-.adm-link { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; font-size: 16px; border-bottom: .5px solid var(--line); }
-.adm-link:last-child { border-bottom: 0; }
-.adm-link .muted { font-size: 13px; }
-.adm-link > svg { color: var(--muted); flex: none; }
-.adm-h { font-size: 20px; font-weight: 700; margin: 22px 20px 8px; }
-.adm-note { margin: 0 20px 10px; font-size: 13px; }
-.adm-note.bad, .adm-val.bad { color: var(--accent); }
-.adm-card { margin: 0 20px 12px; padding: 14px 16px; border-radius: 14px; background: var(--bg-elev); border: .5px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
-.adm-meter-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
-.adm-bar { height: 6px; border-radius: 3px; background: var(--bg-elev2); overflow: hidden; }
-.adm-bar span { display: block; height: 100%; background: #3ecf6e; border-radius: 3px; }
-.adm-bar span.warn { background: #e0a83e; }
-.adm-bar span.bad { background: var(--accent); }
-.adm-rows { gap: 0; padding: 4px 16px; }
-.adm-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 15px; border-bottom: .5px solid var(--line); }
-.adm-row:last-child { border-bottom: 0; }
-.adm-row > span:nth-last-child(2) { flex: 1; min-width: 0; }
-.adm-val { color: var(--muted); font-size: 13.5px; text-align: right; }
-.adm-sub { font-size: 12.5px; color: var(--muted); margin: -6px 0 4px 18px; }
-.act-dot.bad { background: var(--accent); opacity: 1; }
-.admin-content { padding-bottom: calc(var(--safe-bottom) + 32px); max-width: 760px; margin: 0 auto; }
-
-/* ---------- admin: usage graphs (one measure per chart) ---------- */
-.usage-range { margin: 0 0 2px; }
-.usage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; margin-bottom: 4px; }
-.usage-title { font-weight: 600; }
-.usage-now { font-size: 13px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
-.usage-now b { color: var(--text); font-weight: 700; }
-.usage-plot { width: 100%; touch-action: pan-y; }
-.usage-plot svg { display: block; }
-.usage-grid { stroke: var(--line); stroke-width: 1; }
-.usage-axis { fill: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
-.usage-line { fill: none; stroke: #6ea8fe; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.usage-area { fill: #6ea8fe; opacity: .12; }
-.usage-dot { fill: #6ea8fe; }
-.usage-cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
-.usage-mark { fill: #6ea8fe; stroke: var(--bg-elev); stroke-width: 2; }

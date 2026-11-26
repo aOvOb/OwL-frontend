@@ -3,13 +3,14 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { api } from "../api";
 import { Loading, Page, Toaster, toast } from "../components";
-import { AdminActivityPage } from "../pages/Activity";
-import { AdminSongsPage } from "../pages/Admin";
-import { AdminPage } from "../pages/AdminHome";
+import { AdminActivityPage } from "./Activity";
+import { AdminSongsPage } from "./Songs";
+import { AdminPage } from "./Home";
 import { Downloads } from "../pages/Downloads";
 import Login from "../pages/Login";
 import { SheetProvider } from "../sheets";
 import "../styles.css";
+import "./admin.css";
 
 /**
  * The admin app, on its own domain (admin.<domain>): Caddy asks for the admin gate login first, then this

@@ -1,9 +1,20 @@
 name: build and deploy
 
+# The music app. A push that only touches the admin app (deploy-admin.yml) does not ship it again.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "admin/**"
+      - "src/admin/**"
+      - "vite.admin.config.ts"
+      - ".github/workflows/deploy-admin.yml"
   pull_request:
+    paths-ignore:
+      - "admin/**"
+      - "src/admin/**"
+      - "vite.admin.config.ts"
+      - ".github/workflows/deploy-admin.yml"
   workflow_dispatch:
 
 permissions:

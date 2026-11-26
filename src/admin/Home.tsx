@@ -18,6 +18,14 @@ function ago(sec?: number | null) {
   return h < 48 ? `${h}시간 전` : `${Math.floor(h / 24)}일 전`;
 }
 
+/** The archive is made first and uploaded last, so a fresh archive with a failed run means the upload failed. */
+function backupText(b: NonNullable<AdminStatus["host"]>["backup"]) {
+  if (b.result === "success") return "성공";
+  if (!b.result) return "기록 없음";
+  const fresh = !!b.last && Date.now() / 1000 - b.last < 30 * 3600;
+  return fresh ? "버킷 업로드 실패(서버 사본만 있음)" : `실패(${b.result})`;
+}
+
 function uptime(s: number) {
   const d = Math.floor(s / 86400);
   const h = Math.floor((s % 86400) / 3600);
@@ -32,8 +40,8 @@ const SERVICE: Record<string, string> = {
   "stack-yubal-1": "다운로더(Yubal)",
   "stack-pot-1": "유튜브 토큰 도우미",
   "stack-authgate-1": "관리 화면 로그인",
-  "owl-blue": "앱 서버(blue)",
-  "owl-green": "앱 서버(green)",
+  "owl-blue": "OwL 서버(blue)",
+  "owl-green": "OwL 서버(green)",
 };
 
 function Meter({ label, used, total, text }: { label: string; used: number; total: number; text: string }) {
@@ -120,7 +128,12 @@ function UsageGraphs({ memTotal }: { memTotal: number }) {
 export function AdminPage() {
   const [s, setS] = useState<AdminStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [app, setApp] = useState<{ version: string; build: string } | null>(null);
   const load = useCallback(() => {
+    // The music app's live version (Caddy serves its version.json here on the admin domain).
+    fetch("/app-version.json", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setApp, () => setApp(null));
     api.adminStatus().then(
       (r) => {
         setS(r);
@@ -209,7 +222,7 @@ export function AdminPage() {
                 <div className="adm-row">
                   <span className={`act-dot ${backupOk ? "on" : "bad"}`} />
                   <span>매일 백업</span>
-                  <span className="adm-val">{h.backup.result === "success" ? "성공" : h.backup.result ? `실패(${h.backup.result})` : "기록 없음"}</span>
+                  <span className="adm-val">{backupText(h.backup)}</span>
                 </div>
                 <div className="adm-sub">
                   마지막 파일 {ago(h.backup.last)}, {mb(h.backup.size)}
@@ -250,13 +263,17 @@ export function AdminPage() {
           <h2 className="adm-h">버전</h2>
           <div className="adm-card adm-rows">
             <div className="adm-row">
-              <span>관리 화면</span>
+              <span>어드민</span>
               <span className="adm-val">
                 {APP_VERSION} ({BUILD_ID.slice(0, 7)})
               </span>
             </div>
             <div className="adm-row">
-              <span>앱 서버</span>
+              <span>앱</span>
+              <span className="adm-val">{app ? `${app.version} (${app.build.slice(0, 7)})` : "?"}</span>
+            </div>
+            <div className="adm-row">
+              <span>서버</span>
               <span className="adm-val">
                 {s.backend.version} ({s.backend.build})
               </span>

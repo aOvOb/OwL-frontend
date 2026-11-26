@@ -61,6 +61,31 @@ export type YtSong = {
 
 /** Lyrics saved with the song. Synced lines have a start time in seconds. */
 /** A song file on the server, as the admin song manager lists it. */
+export type ActivityEvent = {
+  t: number;
+  user: string;
+  type: "login" | "active" | "play" | "download" | string;
+  songId?: string | null;
+  title?: string | null;
+  artist?: string | null;
+  count?: number | null;
+};
+
+export type UserActivity = {
+  username: string;
+  lastSeen: number | null;
+  lastLogin: number | null;
+  nowPlaying: ActivityEvent | null;
+  plays: number;
+  downloads: number;
+  activeDays: number;
+  daily: number[];
+  topArtists: { name: string; count: number }[];
+  recent: ActivityEvent[];
+};
+
+export type ActivitySummary = { days: number; from: number; users: UserActivity[] };
+
 export type AdminSong = {
   id: string;
   title: string;
@@ -224,6 +249,7 @@ export const api = {
   dropDownloads: (videoIds: string[]) =>
     request<{ count: number }>("/downloads/drop", { method: "POST", body: JSON.stringify({ videoIds }) }),
   // Song management (admins only; the server checks).
+  adminActivity: (days: number) => request<ActivitySummary>(`/admin/activity?days=${days}`),
   adminSongs: (q: string, offset = 0) =>
     request<{ total: number; songs: AdminSong[] }>(`/admin/songs?${new URLSearchParams({ q, offset: String(offset) })}`),
   adminEditSong: (id: string, tags: { title?: string; artist?: string; album?: string }) =>

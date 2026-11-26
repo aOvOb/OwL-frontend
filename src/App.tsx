@@ -13,6 +13,7 @@ import Home from "./pages/Home";
 import { AlbumPage, AllAlbumsPage, AllArtistsPage, ArtistPage, Library, PlaylistPage } from "./pages/Library";
 import Login from "./pages/Login";
 import Search from "./pages/Search";
+import { AdminActivityPage } from "./pages/Activity";
 import { AdminSongsPage } from "./pages/Admin";
 import { PlayerProvider } from "./player";
 import { DeskMini, useDeskMini, useFloating } from "./desk";
@@ -109,6 +110,7 @@ function Shell({ onLogout, startedOffline }: { onLogout: () => void; startedOffl
           <Route path="/my/:id" element={<MyPlaylistPage />} />
           <Route path="/my/:id/add" element={<AddSongsPage />} />
           <Route path="/admin/songs" element={<AdminSongsPage />} />
+          <Route path="/admin/activity" element={<AdminActivityPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Routed>

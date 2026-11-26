@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { coverUrl, streamUrl, type Song } from "./api";
 import { canPlayNow } from "./offline";
+import { setReloadAudio } from "./reload";
 import { artistKey, balancedShuffle } from "./shuffle";
 
 type Repeat = "off" | "all" | "one";
@@ -48,7 +49,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [shuffle, setShuffleState] = useState(false);
   const [repeat, setRepeat] = useState<Repeat>("off");
   const original = useRef<Song[]>([]); // queue order before shuffle
-  const retried = useRef<string | null>(null);
+  // Reconnects for the current song (a backend redeploy can cut a stream): src, attempts, position then.
+  const retried = useRef<{ src: string; n: number; at: number } | null>(null);
 
   const current = index >= 0 && index < queue.length ? queue[index] : null;
   const stateRef = useRef({ queue, index, repeat, shuffle });
@@ -59,6 +61,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     a.preload = "auto";
     a.setAttribute("playsinline", "");
     audioRef.current = a;
+    setReloadAudio(a);
   }
 
   const load = useCallback((song: Song, autoplay = true) => {
@@ -123,17 +126,33 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         a.play().catch(() => {});
       } else next();
     };
-    // A stream can break while the backend is being redeployed; resume once from the same spot.
-    const onError = () => {
+    // A stream can break while the backend is being redeployed. Some browsers report an error, others
+    // just stall: either way load the song again from the same spot, up to 3 times (reset once it plays on).
+    const resume = () => {
       const src = a.currentSrc;
-      if (!src || retried.current === src) return;
-      retried.current = src;
+      if (!src) return;
+      const r = retried.current?.src === src ? retried.current : { src, n: 0, at: 0 };
+      if (r.n >= 3) return;
       const at = a.currentTime;
+      retried.current = { src, n: r.n + 1, at };
       setTimeout(() => {
+        if (a.currentSrc !== src && a.src !== src) return; // another song started meanwhile
         a.src = src;
         a.currentTime = at;
         a.play().catch(() => {});
-      }, 1200);
+      }, 1000 * (r.n + 1));
+    };
+    const onError = () => resume();
+    let stall: ReturnType<typeof setTimeout> | undefined;
+    const onWaiting = () => {
+      clearTimeout(stall);
+      const at = a.currentTime;
+      stall = setTimeout(() => !a.paused && a.currentTime === at && resume(), 8000);
+    };
+    const onProgress = () => {
+      clearTimeout(stall);
+      const r = retried.current;
+      if (r && a.currentTime > r.at + 10) retried.current = null;
     };
     a.addEventListener("play", onPlay);
     a.addEventListener("pause", onPause);
@@ -141,6 +160,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     a.addEventListener("loadedmetadata", onMeta);
     a.addEventListener("ended", onEnded);
     a.addEventListener("error", onError);
+    a.addEventListener("waiting", onWaiting);
+    a.addEventListener("stalled", onWaiting);
+    a.addEventListener("playing", onProgress);
+    a.addEventListener("timeupdate", onProgress);
     return () => {
       a.removeEventListener("play", onPlay);
       a.removeEventListener("pause", onPause);
@@ -148,6 +171,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       a.removeEventListener("loadedmetadata", onMeta);
       a.removeEventListener("ended", onEnded);
       a.removeEventListener("error", onError);
+      a.removeEventListener("waiting", onWaiting);
+      a.removeEventListener("stalled", onWaiting);
+      a.removeEventListener("playing", onProgress);
+      a.removeEventListener("timeupdate", onProgress);
+      clearTimeout(stall);
     };
   }, [next]);
 

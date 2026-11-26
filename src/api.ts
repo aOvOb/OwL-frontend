@@ -78,6 +78,15 @@ export type AdminStatus = {
   backend: { version: string; build: string };
 };
 
+export type StatusHistory = {
+  from: number;
+  to: number;
+  /** Seconds per point. */
+  step: number;
+  /** cpu: busy % (average over the step), mem: bytes used. */
+  points: { t: number; cpu: number | null; cpuMax: number | null; mem: number | null }[];
+};
+
 export type ActivityEvent = {
   t: number;
   user: string;
@@ -267,6 +276,7 @@ export const api = {
     request<{ count: number }>("/downloads/drop", { method: "POST", body: JSON.stringify({ videoIds }) }),
   // Song management (admins only; the server checks).
   adminStatus: () => request<AdminStatus>("/admin/status"),
+  adminStatusHistory: (hours: number) => request<StatusHistory>(`/admin/status/history?hours=${hours}`),
   adminActivity: (days: number) => request<ActivitySummary>(`/admin/activity?days=${days}`),
   adminSongs: (q: string, offset = 0) =>
     request<{ total: number; songs: AdminSong[] }>(`/admin/songs?${new URLSearchParams({ q, offset: String(offset) })}`),

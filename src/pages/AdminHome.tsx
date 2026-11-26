@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
-import { api, type AdminStatus } from "../api";
+import { api, type AdminStatus, type StatusHistory } from "../api";
 import { ErrorBox, Loading, Page } from "../components";
 import { IconChevron } from "../icons";
 import { APP_VERSION, BUILD_ID } from "../version";
+import { UsageChart } from "./UsageChart";
 
 const gb = (n?: number | null) => (n == null ? "?" : `${(n / 1024 ** 3).toFixed(n >= 100 * 1024 ** 3 ? 0 : 1)}GB`);
 const mb = (n?: number | null) => (n == null ? "?" : `${(n / 1024 ** 2).toFixed(1)}MB`);
@@ -46,6 +47,68 @@ function Meter({ label, used, total, text }: { label: string; used: number; tota
       <div className="adm-bar">
         <span className={pct >= 85 ? "bad" : pct >= 70 ? "warn" : ""} style={{ width: `${pct}%` }} />
       </div>
+    </div>
+  );
+}
+
+const RANGES = [
+  { hours: 1, label: "1시간" },
+  { hours: 24, label: "24시간" },
+  { hours: 168, label: "7일" },
+];
+
+/** CPU and memory over time: two charts (different units, never two scales on one), one range control. */
+function UsageGraphs({ memTotal }: { memTotal: number }) {
+  const [hours, setHours] = useState(24);
+  const [data, setData] = useState<StatusHistory | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const get = () => api.adminStatusHistory(hours).then((r) => alive && setData(r), () => {});
+    get();
+    const t = setInterval(get, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [hours]);
+  const memGb = memTotal / 1024 ** 3;
+  const gbTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(memGb * f));
+  return (
+    <div className="adm-card">
+      <div className="segmented usage-range">
+        {RANGES.map((r) => (
+          <button key={r.hours} className={hours === r.hours ? "on" : ""} onClick={() => setHours(r.hours)}>
+            {r.label}
+          </button>
+        ))}
+      </div>
+      {!data ? (
+        <Loading />
+      ) : (
+        <>
+          <UsageChart
+            title="CPU 사용률"
+            points={data.points.map((p) => ({ t: p.t, value: p.cpu }))}
+            step={data.step}
+            max={100}
+            ticks={[0, 50, 100]}
+            format={(v) => `${Math.round(v)}%`}
+            from={data.from}
+            to={data.to}
+          />
+          <UsageChart
+            title={`메모리 사용량 (전체 ${Math.round(memGb)}GB)`}
+            points={data.points.map((p) => ({ t: p.t, value: p.mem == null ? null : p.mem / 1024 ** 3 }))}
+            step={data.step}
+            max={memGb}
+            ticks={gbTicks.filter((v, i, a) => a.indexOf(v) === i)}
+            format={(v) => `${v < 10 ? v.toFixed(1) : Math.round(v)}GB`}
+            from={data.from}
+            to={data.to}
+          />
+          {data.points.length < 3 && <p className="adm-note muted">기록이 막 쌓이기 시작했어요. 1분마다 점이 하나씩 늘어나요</p>}
+        </>
+      )}
     </div>
   );
 }
@@ -131,6 +194,8 @@ export function AdminPage() {
                 />
                 <Meter label="디스크" used={h.disk.used} total={h.disk.total} text={`${gb(h.disk.used)} / ${gb(h.disk.total)}`} />
               </div>
+
+              <UsageGraphs memTotal={h.memory.total} />
 
               <div className="adm-card adm-rows">
                 <div className="adm-row">

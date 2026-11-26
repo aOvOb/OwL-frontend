@@ -57,25 +57,8 @@ export function Library() {
       {tab === "artists" && <Artists q={q} />}
       {tab === "offline" && <OfflineSongs q={q} />}
       {tab === "downloads" && <Downloads q={q} />}
-      <AdminLink />
       <VersionLine />
     </Page>
-  );
-}
-
-/** Entry to the admin page (server state, user activity, songs), for admin accounts only (the server checks too). */
-function AdminLink() {
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    api.me().then((m) => setAdmin(!!m.admin), () => setAdmin(false));
-  }, []);
-  if (!admin) return null;
-  return (
-    <div className="play-row">
-      <Link className="pill big ghost" to="/admin">
-        관리 (관리자)
-      </Link>
-    </div>
   );
 }
 

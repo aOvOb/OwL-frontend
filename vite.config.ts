@@ -25,7 +25,8 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      injectManifest: { globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"] },
+      // The admin app (admin.html, its own domain) is not part of the music app's offline files.
+      injectManifest: { globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"], globIgnores: ["admin.html", "**/admin-*.js"] },
       includeAssets: ["icons/apple-touch-icon.png", "icons/favicon-64.png"],
       manifest: {
         name: "OwL",
@@ -46,6 +47,8 @@ export default defineConfig({
       },
     }),
   ],
+  // Two pages: the music app (index.html) and the admin app (admin.html, served on the admin domain).
+  build: { rollupOptions: { input: { main: "index.html", admin: "admin.html" } } },
   server: {
     // Local development against the real server: `npm run dev`, then log in.
     proxy: {

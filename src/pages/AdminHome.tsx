@@ -51,8 +51,8 @@ function Meter({ label, used, total, text }: { label: string; used: number; tota
 }
 
 /**
- * Admin home: the server's state (refreshed every 30 seconds; the server itself writes it once a minute)
- * and the admin tools. Only shown to admin accounts; the server checks every call.
+ * Admin home (the admin app's first screen, src/admin): the server's state (refreshed every 30 seconds;
+ * the server itself writes it once a minute) and the admin tools. The server checks every call.
  */
 export function AdminPage() {
   const [s, setS] = useState<AdminStatus | null>(null);
@@ -80,19 +80,19 @@ export function AdminPage() {
   const costOk = cost && !cost.error && cost.month_cost != null && cost.month_cost <= (cost.threshold ?? 0);
 
   return (
-    <Page title="관리" back large={false}>
+    <Page title="관리" large={false}>
       <h1 className="large-title">관리</h1>
 
       <div className="adm-links">
-        <Link to="/admin/activity" className="adm-link">
+        <Link to="/activity" className="adm-link">
           <span>사용자 활동</span>
           <IconChevron size={16} />
         </Link>
-        <Link to="/admin/songs" className="adm-link">
+        <Link to="/songs" className="adm-link">
           <span>곡 관리</span>
           <IconChevron size={16} />
         </Link>
-        <Link to="/library?tab=downloads" className="adm-link">
+        <Link to="/downloads" className="adm-link">
           <span>
             다운로드 대기열
             {dl && (

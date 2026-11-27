@@ -1,5 +1,5 @@
 // PC mini player: when the app window on a computer is made narrow, the app turns into a small
-// player (like Apple Music's mini player). The window's height picks the look:
+// player (like Apple Music's mini player), but only while music is playing. The window's height picks the look:
 //   short   -> a bar: artwork, title, progress and buttons
 //   square  -> the artwork, with title and buttons on mouse-over
 //   tall    -> artwork on top, the next songs below
@@ -12,15 +12,25 @@ import { usePlayer } from "./player";
 const MINI_WIDTH = 560;
 const DESKTOP = "(hover: hover) and (pointer: fine)";
 
-/** true while this is a computer window narrower than MINI_WIDTH. */
+/**
+ * true while this is a computer window narrower than MINI_WIDTH and music is playing. A narrow window
+ * with nothing playing keeps the normal app, so a song can still be picked. Once on, the mini player
+ * stays while the window stays narrow (pausing in it does not swap the whole window back).
+ */
 export function useDeskMini() {
-  const check = () => window.matchMedia(DESKTOP).matches && window.innerWidth < MINI_WIDTH;
-  const [mini, setMini] = useState(check);
+  const { playing } = usePlayer();
+  const narrow = () => window.matchMedia(DESKTOP).matches && window.innerWidth < MINI_WIDTH;
+  const [isNarrow, setNarrow] = useState(narrow);
+  const [mini, setMini] = useState(false);
   useEffect(() => {
-    const on = () => setMini(check());
+    const on = () => setNarrow(narrow());
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
   }, []);
+  useEffect(() => {
+    if (!isNarrow) setMini(false);
+    else if (playing) setMini(true);
+  }, [isNarrow, playing]);
   useEffect(() => {
     document.body.classList.toggle("desk-mini", mini);
   }, [mini]);
